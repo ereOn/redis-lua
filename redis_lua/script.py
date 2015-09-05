@@ -10,6 +10,7 @@ from .exceptions import error_handler
 from .regions import (
     ArgumentRegion,
     KeyRegion,
+    ReturnRegion,
     ScriptRegion,
 )
 
@@ -70,6 +71,19 @@ class Script(object):
 
         return result
 
+    @classmethod
+    def get_return_from_regions(cls, regions):
+        result = None
+
+        for region in regions:
+            if isinstance(region, ReturnRegion):
+                if result is not None:
+                    raise ValueError("There can be only one return statement.")
+
+                result = region.type_
+
+        return result
+
     def __init__(self, name, regions, registered_client):
         """
         Create a new script object.
@@ -85,6 +99,7 @@ class Script(object):
         self.name = name
         self.keys = self.get_keys_from_regions(regions)
         self.args = self.get_args_from_regions(regions)
+        self.return_type = self.get_return_from_regions(regions)
 
         duplicates = set(self.keys) & {arg for arg, _ in self.args}
 

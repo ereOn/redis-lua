@@ -10,6 +10,7 @@ from redis_lua.regions import (
     ScriptRegion,
     KeyRegion,
     ArgumentRegion,
+    ReturnRegion,
 )
 
 
@@ -28,6 +29,7 @@ class ObjectsScriptTests(TestCase):
 
         self.assertEqual(name, script.name)
         self.assertEqual(regions, script.regions)
+        self.assertIsNone(script.return_type)
 
     def test_script_instanciation_no_regions(self):
         name = 'foo'
@@ -194,6 +196,55 @@ class ObjectsScriptTests(TestCase):
                 real_line=2,
                 line=2,
                 content='%arg arg2',
+            ),
+        ]
+        with self.assertRaises(ValueError):
+            Script(
+                name=name,
+                regions=regions,
+                registered_client=MagicMock(),
+            )
+
+    def test_script_instanciation_with_return_statement(self):
+        name = 'foo'
+        regions = [
+            ArgumentRegion(
+                name="arg1",
+                type_='string',
+                index=1,
+                real_line=1,
+                line=1,
+                content='%arg arg1',
+            ),
+            ReturnRegion(
+                type_='integer',
+                real_line=2,
+                line=2,
+                content='%return integer',
+            ),
+        ]
+        script = Script(
+            name=name,
+            regions=regions,
+            registered_client=MagicMock(),
+        )
+
+        self.assertIs(int, script.return_type)
+
+    def test_script_instanciation_with_too_many_return_statements(self):
+        name = 'foo'
+        regions = [
+            ReturnRegion(
+                type_='string',
+                real_line=1,
+                line=1,
+                content='%return string',
+            ),
+            ReturnRegion(
+                type_='integer',
+                real_line=1,
+                line=1,
+                content='%return integer',
             ),
         ]
         with self.assertRaises(ValueError):
