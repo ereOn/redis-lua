@@ -40,6 +40,169 @@ class ObjectsScriptTests(TestCase):
                 registered_client=MagicMock(),
             )
 
+    def test_script_instanciation_with_keys(self):
+        name = 'foo'
+        subregions = [
+            KeyRegion(
+                name="key2",
+                index=1,
+                real_line=1,
+                line=1,
+                content='%key key2',
+            ),
+            TextRegion(content='local b = 0;', real_line=2, line=2),
+        ]
+        regions = [
+            KeyRegion(
+                name="key1",
+                index=1,
+                real_line=1,
+                line=1,
+                content='%key key1',
+            ),
+            TextRegion(content='a', real_line=2, line=2),
+            ScriptRegion(
+                script=Script(
+                    name='bar',
+                    regions=subregions,
+                    registered_client=MagicMock(),
+                ),
+                real_line=3,
+                line=3,
+                content='%include "bar"',
+            ),
+            KeyRegion(
+                name="key3",
+                index=3,
+                real_line=5,
+                line=5,
+                content='%key key3',
+            ),
+        ]
+        script = Script(
+            name=name,
+            regions=regions,
+            registered_client=MagicMock(),
+        )
+
+        self.assertEqual(
+            [
+                "key1",
+                "key2",
+                "key3",
+            ],
+            script.keys,
+        )
+
+    def test_script_instanciation_with_incorrect_keys(self):
+        name = 'foo'
+        regions = [
+            KeyRegion(
+                name="key1",
+                index=1,
+                real_line=1,
+                line=1,
+                content='%key key1',
+            ),
+            KeyRegion(
+                name="key2",
+                index=3,
+                real_line=2,
+                line=2,
+                content='%key key2',
+            ),
+        ]
+        with self.assertRaises(ValueError):
+            Script(
+                name=name,
+                regions=regions,
+                registered_client=MagicMock(),
+            )
+
+    def test_script_instanciation_with_args(self):
+        name = 'foo'
+        subregions = [
+            ArgumentRegion(
+                name="arg2",
+                index=1,
+                type_='string',
+                real_line=1,
+                line=1,
+                content='%arg arg2',
+            ),
+            TextRegion(content='local b = 0;', real_line=2, line=2),
+        ]
+        regions = [
+            ArgumentRegion(
+                name="arg1",
+                index=1,
+                type_='string',
+                real_line=1,
+                line=1,
+                content='%arg arg1',
+            ),
+            TextRegion(content='a', real_line=2, line=2),
+            ScriptRegion(
+                script=Script(
+                    name='bar',
+                    regions=subregions,
+                    registered_client=MagicMock(),
+                ),
+                real_line=3,
+                line=3,
+                content='%include "bar"',
+            ),
+            ArgumentRegion(
+                name="arg3",
+                index=3,
+                type_='integer',
+                real_line=5,
+                line=5,
+                content='%arg arg3 integer',
+            ),
+        ]
+        script = Script(
+            name=name,
+            regions=regions,
+            registered_client=MagicMock(),
+        )
+
+        self.assertEqual(
+            [
+                ("arg1", str),
+                ("arg2", str),
+                ("arg3", int),
+            ],
+            script.args,
+        )
+
+    def test_script_instanciation_with_incorrect_args(self):
+        name = 'foo'
+        regions = [
+            ArgumentRegion(
+                name="arg1",
+                type_='string',
+                index=1,
+                real_line=1,
+                line=1,
+                content='%arg arg1',
+            ),
+            ArgumentRegion(
+                name="arg2",
+                type_='string',
+                index=3,
+                real_line=2,
+                line=2,
+                content='%arg arg2',
+            ),
+        ]
+        with self.assertRaises(ValueError):
+            Script(
+                name=name,
+                regions=regions,
+                registered_client=MagicMock(),
+            )
+
     def test_script_representation(self):
         name = 'foo'
         regions = [
@@ -155,7 +318,7 @@ class ObjectsScriptTests(TestCase):
                     line=6,
                     content='%include "bar"',
                 ),
-                TextRegion(content='f', real_line=6, line=8),
+                TextRegion(content='f\ng\nh', real_line=6, line=8),
             ],
             registered_client=MagicMock(),
         )
@@ -183,9 +346,11 @@ class ObjectsScriptTests(TestCase):
             script.get_scripts_for_line(7),
         )
         self.assertEqual([(script, 6)], script.get_scripts_for_line(8))
+        self.assertEqual([(script, 7)], script.get_scripts_for_line(9))
+        self.assertEqual([(script, 8)], script.get_scripts_for_line(10))
 
         with self.assertRaises(ValueError):
-            script.get_scripts_for_line(9)
+            script.get_scripts_for_line(11)
 
     def test_script_get_region_for_line(self):
         name = 'foo'
@@ -228,117 +393,6 @@ class ObjectsScriptTests(TestCase):
 
         with self.assertRaises(ValueError):
             script.get_region_for_line(9)
-
-    def test_script_keys(self):
-        name = 'foo'
-        subregions = [
-            KeyRegion(
-                name="key2",
-                index=1,
-                real_line=1,
-                line=1,
-                content='%key key2',
-            ),
-            TextRegion(content='local b = 0;', real_line=2, line=2),
-        ]
-        regions = [
-            KeyRegion(
-                name="key1",
-                index=1,
-                real_line=1,
-                line=1,
-                content='%key key1',
-            ),
-            TextRegion(content='a', real_line=2, line=2),
-            ScriptRegion(
-                script=Script(
-                    name='bar',
-                    regions=subregions,
-                    registered_client=MagicMock(),
-                ),
-                real_line=3,
-                line=3,
-                content='%include "bar"',
-            ),
-            KeyRegion(
-                name="key3",
-                index=3,
-                real_line=5,
-                line=5,
-                content='%key key3',
-            ),
-        ]
-        script = Script(
-            name=name,
-            regions=regions,
-            registered_client=MagicMock(),
-        )
-
-        self.assertEqual(
-            [
-                ("key1", 1),
-                ("key2", 2),
-                ("key3", 3),
-            ],
-            script.keys,
-        )
-
-    def test_script_arguments(self):
-        name = 'foo'
-        subregions = [
-            ArgumentRegion(
-                name="arg2",
-                index=1,
-                type_=str,
-                real_line=1,
-                line=1,
-                content='%arg arg2',
-            ),
-            TextRegion(content='local b = 0;', real_line=2, line=2),
-        ]
-        regions = [
-            ArgumentRegion(
-                name="arg1",
-                index=1,
-                type_=str,
-                real_line=1,
-                line=1,
-                content='%arg arg1',
-            ),
-            TextRegion(content='a', real_line=2, line=2),
-            ScriptRegion(
-                script=Script(
-                    name='bar',
-                    regions=subregions,
-                    registered_client=MagicMock(),
-                ),
-                real_line=3,
-                line=3,
-                content='%include "bar"',
-            ),
-            ArgumentRegion(
-                name="arg3",
-                index=3,
-                type_=int,
-                real_line=5,
-                line=5,
-                content='%arg arg3 integer',
-            ),
-        ]
-        script = Script(
-            name=name,
-            regions=regions,
-            registered_client=MagicMock(),
-        )
-
-        self.assertEqual(
-            [
-                ("arg1", 1, str),
-                ("arg2", 2, str),
-                ("arg3", 3, int),
-            ],
-            script.arguments,
-        )
 
     def test_script_as_string(self):
         name = 'foo'
@@ -447,7 +501,7 @@ class ObjectsScriptTests(TestCase):
             ArgumentRegion(
                 name='arg1',
                 index=1,
-                type_=str,
+                type_='string',
                 real_line=2,
                 line=2,
                 content='%arg arg1',
@@ -455,10 +509,26 @@ class ObjectsScriptTests(TestCase):
             TextRegion(content='b', real_line=3, line=3),
             KeyRegion(
                 name='key2',
-                index=1,
+                index=2,
                 real_line=4,
                 line=4,
                 content='%key key2',
+            ),
+            ArgumentRegion(
+                name='arg2',
+                index=2,
+                type_='integer',
+                real_line=5,
+                line=5,
+                content='%arg arg2',
+            ),
+            ArgumentRegion(
+                name='arg3',
+                index=3,
+                type_='bool',
+                real_line=6,
+                line=6,
+                content='%arg arg3',
             ),
         ]
         script = Script(
@@ -467,13 +537,19 @@ class ObjectsScriptTests(TestCase):
             registered_client=MagicMock(),
         )
         script.redis_script.return_value = "result"
-        result = script(arg1='ARG', key1='KEY', key2='KEY 2')
+        result = script(
+            arg1='ARG',
+            arg2=2,
+            arg3=False,
+            key1='KEY',
+            key2='KEY 2',
+        )
 
         self.assertEqual("result", result)
         script.redis_script.assert_called_once_with(
             client=None,
             keys=['KEY', 'KEY 2'],
-            args=['ARG'],
+            args=['ARG', 2, 0],
         )
 
     def test_script_call_missing_key(self):
@@ -489,7 +565,7 @@ class ObjectsScriptTests(TestCase):
             ArgumentRegion(
                 name='arg1',
                 index=1,
-                type_=str,
+                type_='string',
                 real_line=2,
                 line=2,
                 content='%arg arg1',
@@ -517,7 +593,7 @@ class ObjectsScriptTests(TestCase):
             ArgumentRegion(
                 name='arg1',
                 index=1,
-                type_=str,
+                type_='string',
                 real_line=2,
                 line=2,
                 content='%arg arg1',
@@ -545,7 +621,7 @@ class ObjectsScriptTests(TestCase):
             ArgumentRegion(
                 name='arg1',
                 index=1,
-                type_=str,
+                type_='string',
                 real_line=2,
                 line=2,
                 content='%arg arg1',

@@ -119,7 +119,7 @@ class ScriptRegionTests(TestCase):
             ArgumentRegion(
                 name='arg1',
                 index=1,
-                type_=str,
+                type_='string',
                 real_line=1,
                 line=1,
                 content='%arg arg1',
@@ -139,7 +139,7 @@ class ScriptRegionTests(TestCase):
             content='%include "foo"',
         )
 
-        self.assertEqual(script.arguments, script_region.arguments)
+        self.assertEqual(script.args, script_region.args)
 
     def test_script_region_as_string(self):
         name = 'foo'
@@ -349,7 +349,7 @@ class ArgumentRegionTests(TestCase):
         argument_region = ArgumentRegion(
             name=name,
             index=index,
-            type_=str,
+            type_='string',
             real_line=line,
             line=line,
             content='%arg foo',
@@ -366,7 +366,7 @@ class ArgumentRegionTests(TestCase):
         argument_region = ArgumentRegion(
             name=name,
             index=index,
-            type_=str,
+            type_='string',
             real_line=line,
             line=line,
             content='%arg foo',
@@ -387,7 +387,7 @@ class ArgumentRegionTests(TestCase):
         argument_region = ArgumentRegion(
             name=name,
             index=index,
-            type_=str,
+            type_='string',
             real_line=line,
             line=line,
             content='%arg foo',
@@ -403,7 +403,7 @@ class ArgumentRegionTests(TestCase):
         argument_region = ArgumentRegion(
             name=name,
             index=index,
-            type_=str,
+            type_='string',
             real_line=line,
             line=line,
             content='%arg foo',
@@ -418,7 +418,7 @@ class ArgumentRegionTests(TestCase):
         argument_region = ArgumentRegion(
             name=name,
             index=index,
-            type_=int,
+            type_='integer',
             real_line=line,
             line=line,
             content='%arg bar',
@@ -426,11 +426,29 @@ class ArgumentRegionTests(TestCase):
 
         self.assertEqual("local bar = tonumber(ARGV[2])", str(argument_region))
 
+    def test_argument_region_as_string_bool_type(self):
+        name = 'bar'
+        index = 2
+        line = 7
+        argument_region = ArgumentRegion(
+            name=name,
+            index=index,
+            type_='boolean',
+            real_line=line,
+            line=line,
+            content='%arg bar',
+        )
+
+        self.assertEqual(
+            "local bar = tonumber(ARGV[2]) ~= 0",
+            str(argument_region),
+        )
+
     def test_argument_region_equality(self):
         argument_region_a = ArgumentRegion(
             name="foo",
             index=1,
-            type_=str,
+            type_='string',
             real_line=1,
             line=2,
             content='%arg foo',
@@ -438,7 +456,7 @@ class ArgumentRegionTests(TestCase):
         argument_region_b = ArgumentRegion(
             name="foo",
             index=1,
-            type_=str,
+            type_='string',
             real_line=1,
             line=2,
             content='%arg foo',
@@ -446,7 +464,7 @@ class ArgumentRegionTests(TestCase):
         argument_region_c = ArgumentRegion(
             name="bar",
             index=1,
-            type_=str,
+            type_='string',
             real_line=1,
             line=2,
             content='%arg foo',
@@ -454,7 +472,7 @@ class ArgumentRegionTests(TestCase):
         argument_region_d = ArgumentRegion(
             name="foo",
             index=2,
-            type_=str,
+            type_='string',
             real_line=1,
             line=2,
             content='%arg foo',
@@ -462,7 +480,7 @@ class ArgumentRegionTests(TestCase):
         argument_region_e = ArgumentRegion(
             name="foo",
             index=2,
-            type_=int,
+            type_='integer',
             real_line=1,
             line=2,
             content='%arg foo',
@@ -470,7 +488,7 @@ class ArgumentRegionTests(TestCase):
         argument_region_f = ArgumentRegion(
             name="foo",
             index=1,
-            type_=str,
+            type_='string',
             real_line=2,
             line=2,
             content='%arg foo',
@@ -478,7 +496,7 @@ class ArgumentRegionTests(TestCase):
         argument_region_g = ArgumentRegion(
             name="foo",
             index=1,
-            type_=str,
+            type_='string',
             real_line=1,
             line=3,
             content='%arg foo',
@@ -486,7 +504,7 @@ class ArgumentRegionTests(TestCase):
         argument_region_h = ArgumentRegion(
             name="foo",
             index=1,
-            type_=str,
+            type_='string',
             real_line=1,
             line=3,
             content='%arg bar',
@@ -786,6 +804,7 @@ class ScriptParserTests(TestCase):
             '%include "foo"',
             '%arg arg3 string',
             '%arg arg4 integer',
+            '%arg arg5 boolean',
         ]
         content = '\n'.join(contents)
         script = Script(
@@ -795,7 +814,7 @@ class ScriptParserTests(TestCase):
                 ArgumentRegion(
                     name='arg2',
                     index=1,
-                    type_=str,
+                    type_='string',
                     real_line=1,
                     line=1,
                     content='%arg arg2',
@@ -815,7 +834,7 @@ class ScriptParserTests(TestCase):
                 ArgumentRegion(
                     name='arg1',
                     index=1,
-                    type_=str,
+                    type_='string',
                     real_line=1,
                     line=1,
                     content=contents[0],
@@ -829,7 +848,7 @@ class ScriptParserTests(TestCase):
                 ArgumentRegion(
                     name='arg3',
                     index=3,
-                    type_=str,
+                    type_='string',
                     real_line=3,
                     line=3,
                     content=contents[2],
@@ -837,10 +856,89 @@ class ScriptParserTests(TestCase):
                 ArgumentRegion(
                     name='arg4',
                     index=4,
-                    type_=int,
+                    type_='integer',
                     real_line=4,
                     line=4,
                     content=contents[3],
+                ),
+                ArgumentRegion(
+                    name='arg5',
+                    index=5,
+                    type_='boolean',
+                    real_line=5,
+                    line=5,
+                    content=contents[4],
+                ),
+            ],
+            regions,
+        )
+
+    def test_extract_regions_text_last(self):
+        contents = [
+            '%arg arg1',
+            '%include "foo"',
+            '%key key2',
+            'a',
+            'b',
+            'c',
+        ]
+        content = '\n'.join(contents)
+        script = Script(
+            registered_client=MagicMock(),
+            name='foo',
+            regions=[
+                ArgumentRegion(
+                    name='arg2',
+                    index=1,
+                    type_='string',
+                    real_line=1,
+                    line=1,
+                    content='%arg arg2',
+                ),
+                KeyRegion(
+                    name='key1',
+                    index=1,
+                    real_line=2,
+                    line=2,
+                    content='%key key1',
+                ),
+            ],
+        )
+        get_script_by_name = MagicMock(return_value=script)
+        regions = self.parser.parse_regions(
+            content=content,
+            current_path=".",
+            get_script_by_name=get_script_by_name,
+        )
+
+        self.maxDiff = None
+        self.assertEqual(
+            [
+                ArgumentRegion(
+                    name='arg1',
+                    index=1,
+                    type_='string',
+                    real_line=1,
+                    line=1,
+                    content=contents[0],
+                ),
+                ScriptRegion(
+                    script=script,
+                    real_line=2,
+                    line=2,
+                    content='%include "foo"',
+                ),
+                KeyRegion(
+                    name='key2',
+                    index=2,
+                    real_line=3,
+                    line=4,
+                    content=contents[2],
+                ),
+                TextRegion(
+                    real_line=4,
+                    line=5,
+                    content='\n'.join(contents[3:6]),
                 ),
             ],
             regions,

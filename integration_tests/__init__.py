@@ -1,3 +1,4 @@
+import json
 import os
 
 from functools import wraps
@@ -71,3 +72,29 @@ def test_script_error(redis):
         )
 
     assert_equal(4, error.exception.line)
+
+
+@skip_if_no_redis
+def test_argument_types(redis):
+    args = {
+        's': 'foo',
+        'i': 42,
+        'b': False,
+    }
+    result = json.loads(run_code(
+        client=redis,
+        content="""
+        %arg s string
+        %arg i integer
+        %arg b boolean
+
+        return cjson.encode({
+            s=s,
+            i=i,
+            b=b,
+        })
+        """,
+        kwargs=args,
+    ).decode('utf-8'))
+
+    assert_equal(args, result)

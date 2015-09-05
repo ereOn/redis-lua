@@ -6,8 +6,6 @@ import os
 import re
 import six
 
-from itertools import chain
-
 
 @six.python_2_unicode_compatible
 class ScriptRegion(object):
@@ -51,8 +49,8 @@ class ScriptRegion(object):
         return self.script.keys
 
     @property
-    def arguments(self):
-        return self.script.arguments
+    def args(self):
+        return self.script.args
 
 
 @six.python_2_unicode_compatible
@@ -94,10 +92,29 @@ class KeyRegion(object):
 
 @six.python_2_unicode_compatible
 class ArgumentRegion(object):
+    VALID_TYPES = {
+        None: str,
+        'int': int,
+        'integer': int,
+        'string': str,
+        'str': str,
+        'bool': bool,
+        'boolean': bool,
+    }
+
+    @classmethod
+    def get_valid_type(cls, type_):
+        result = cls.VALID_TYPES.get(type_)
+
+        if result is None:
+            raise ValueError("Invalid type '%s' for argument" % type_)
+
+        return result
+
     def __init__(self, name, index, type_, real_line, line, content):
         self.name = name
         self.index = index
-        self.type_ = type_
+        self.type_ = self.get_valid_type(type_=type_)
         self.real_line = real_line
         self.line = line
         self.line_count = 1
@@ -115,8 +132,14 @@ class ArgumentRegion(object):
         )
 
     def __str__(self):
-        if self.type_ == int:
+        if self.type_ is int:
             return "local {self.name} = tonumber(ARGV[{self.index}])".format(
+                self=self,
+            )
+        elif self.type_ is bool:
+            return (
+                "local {self.name} = tonumber(ARGV[{self.index}]) ~= 0"
+            ).format(
                 self=self,
             )
         else:
@@ -190,8 +213,11 @@ class ScriptParser(object):
             self.key_index = 1
             self.arg_index = 1
 
-        def add_line(self, line):
-            self.text_lines.append(line)
+        def add_line(self, real_line, content):
+            if not self.text_lines:
+                self.first_real_line = real_line
+
+            self.text_lines.append(content)
 
         def flush(self):
             if self.text_lines:
@@ -215,10 +241,9 @@ class ScriptParser(object):
             )
             self.regions.append(region)
 
-            self.first_real_line = real_line + region.real_line_count
             self.offset += script.line_count - region.real_line_count
             self.key_index += len(script.keys)
-            self.arg_index += len(script.arguments)
+            self.arg_index += len(script.args)
 
         def add_key_region(self, real_line, name, content):
             self.flush()
@@ -251,13 +276,8 @@ class ScriptParser(object):
             self.flush()
 
             if not self.regions:
-                self.regions.append(
-                    TextRegion(
-                        content='',
-                        real_line=self.first_real_line,
-                        line=self.first_real_line + self.offset,
-                    )
-                )
+                self.add_line(1, '')
+                self.flush()
 
     def parse(self, name, content, script_class, get_script_by_name):
         """
@@ -278,25 +298,7 @@ class ScriptParser(object):
             current_path=os.path.dirname(name),
             get_script_by_name=get_script_by_name,
         )
-        script = script_class(name=name, regions=regions)
-
-        keys = [key for key, _ in script.keys]
-        arguments = [argument for argument, _, _ in script.arguments]
-        all = list(chain(keys, arguments))
-        duplicate = {
-            x for x in all
-            if all.count(x) > 1
-        }
-
-        if duplicate:
-            raise ValueError(
-                "Duplicate key(s)/argument(s) %r when parsing script %r" % (
-                    list(duplicate),
-                    name,
-                ),
-            )
-
-        return script
+        return script_class(name=name, regions=regions)
 
     def parse_regions(self, content, current_path, get_script_by_name):
         """
@@ -335,7 +337,7 @@ class ScriptParser(object):
                 continue
 
             else:
-                context.add_line(statement)
+                context.add_line(real_line, statement)
 
         context.normalize()
 
@@ -407,11 +409,14 @@ class ScriptParser(object):
             name = match.group('name')
             type_ = match.group('type')
 
-            if type_ in {'int', 'integer'}:
-                type_ = int
-            elif type_ in {'str', 'string', None}:
-                type_ = str
-            else:
+            try:
+                context.add_argument_region(
+                    name=name,
+                    type_=type_,
+                    real_line=real_line,
+                    content=statement,
+                )
+            except ValueError:
                 raise ValueError(
                     "Unknown type %r in %r when parsing line %d" % (
                         type_,
@@ -419,12 +424,5 @@ class ScriptParser(object):
                         real_line,
                     ),
                 )
-
-            context.add_argument_region(
-                name=name,
-                type_=type_,
-                real_line=real_line,
-                content=statement,
-            )
 
             return True

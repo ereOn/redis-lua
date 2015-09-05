@@ -16,6 +16,60 @@ from .regions import (
 
 @six.python_2_unicode_compatible
 class Script(object):
+    @classmethod
+    def get_keys_from_regions(cls, regions):
+        result = []
+
+        for region in regions:
+            if isinstance(region, KeyRegion):
+                if region.index != len(result) + 1:
+                    raise ValueError(
+                        "Encountered key %s with index %d when index %d was "
+                        "expected" % (
+                            region.name,
+                            region.index,
+                            len(result) + 1,
+                        )
+                    )
+
+                result.append(region.name)
+            elif isinstance(region, ScriptRegion):
+                result.extend(cls.get_keys_from_regions(region.script.regions))
+
+        duplicates = {x for x in result if result.count(x) > 1}
+
+        if duplicates:
+            raise ValueError("Duplicate key(s) %r" % list(duplicates))
+
+        return result
+
+    @classmethod
+    def get_args_from_regions(cls, regions):
+        result = []
+
+        for region in regions:
+            if isinstance(region, ArgumentRegion):
+                if region.index != len(result) + 1:
+                    raise ValueError(
+                        "Encountered argument %s with index %d when index %d "
+                        "was expected" % (
+                            region.name,
+                            region.index,
+                            len(result) + 1,
+                        )
+                    )
+
+                result.append((region.name, region.type_))
+            elif isinstance(region, ScriptRegion):
+                result.extend(cls.get_args_from_regions(region.script.regions))
+
+        duplicates = {x for x in result if result.count(x) > 1}
+
+        if duplicates:
+            raise ValueError("Duplicate arguments(s) %r" % list(duplicates))
+
+        return result
+
     def __init__(self, name, regions, registered_client):
         """
         Create a new script object.
@@ -29,6 +83,18 @@ class Script(object):
             raise ValueError('regions cannot be empty')
 
         self.name = name
+        self.keys = self.get_keys_from_regions(regions)
+        self.args = self.get_args_from_regions(regions)
+
+        duplicates = set(self.keys) & {arg for arg, _ in self.args}
+
+        if duplicates:
+            raise ValueError(
+                'Some key(s) and argument(s) have the same names: %r' % list(
+                    duplicates,
+                ),
+            )
+
         self.regions = regions
         self.redis_script = RedisScript(
             registered_client=registered_client,
@@ -111,36 +177,6 @@ class Script(object):
 
                     return region, real_lines_before + (line - region.line) + 1
 
-    @property
-    def keys(self):
-        result = []
-
-        for region in self.regions:
-            if isinstance(region, KeyRegion):
-                result.append((region.name, region.index))
-            elif isinstance(region, ScriptRegion):
-                result.extend(
-                    (name, index + len(result))
-                    for name, index in region.script.keys
-                )
-
-        return result
-
-    @property
-    def arguments(self):
-        result = []
-
-        for region in self.regions:
-            if isinstance(region, ArgumentRegion):
-                result.append((region.name, region.index, region.type_))
-            elif isinstance(region, ScriptRegion):
-                result.extend(
-                    (name, index + len(result), type_)
-                    for name, index, type_ in region.script.arguments
-                )
-
-        return result
-
     def __str__(self):
         return self.name + ".lua"
 
@@ -174,48 +210,67 @@ class Script(object):
             registered_client=registered_client,
         )
 
+    @classmethod
+    def convert_argument_for_call(cls, type_, value):
+        if type_ is str:
+            return str(value)
+        elif type_ is int:
+            return int(value)
+        elif type_ is bool:
+            return 1 if value else 0
+
     def __call__(self, **kwargs):
         """
         Call the script with its named arguments.
 
         :returns: The script result.
         """
-        keys = [key for key, _ in self.keys]
-        arguments = [argument for argument, _, _ in self.arguments]
         sentinel = object()
-        keys_params = [sentinel] * len(keys)
-        args_params = [sentinel] * len(arguments)
+        keys = {
+            key: index
+            for index, key
+            in enumerate(self.keys)
+        }
+        args = {
+            arg: (index, type_)
+            for index, (arg, type_)
+            in enumerate(self.args)
+        }
+        keys_params = [sentinel] * len(self.keys)
+        args_params = [sentinel] * len(self.args)
 
-        for key, value in kwargs.items():
-            if key in keys:
-                index = keys.index(key)
+        for name, value in kwargs.items():
+            try:
+                index = keys[name]
                 keys_params[index] = value
-
-            elif key in arguments:
-                index = arguments.index(key)
-                args_params[index] = value
-
-            else:
-                raise TypeError("Unknown key-argument %r" % key)
+            except KeyError:
+                try:
+                    index, type_ = args[name]
+                    args_params[index] = self.convert_argument_for_call(
+                        type_,
+                        value,
+                    )
+                except KeyError:
+                    raise TypeError("Unknown key/argument %r" % name)
 
         missing_keys = {
             key
-            for index, key in enumerate(keys)
+            for key, index in keys.items()
             if keys_params[index] is sentinel
         }
 
         if missing_keys:
-            raise TypeError("Missing key-argument(s) %r" % list(missing_keys))
+            raise TypeError("Missing key(s) %r" % list(missing_keys))
 
-        missing_arguments = {
-            argument
-            for index, argument in enumerate(arguments)
+        missing_args = {
+            arg
+            for arg, (index, type_) in args.items()
             if args_params[index] is sentinel
         }
 
-        if missing_arguments:
+        if missing_args:
             raise TypeError(
-                "Missing key-argument(s) %r" % list(missing_arguments),
+                "Missing argument(s) %r" % list(missing_args),
             )
 
         with error_handler(self):

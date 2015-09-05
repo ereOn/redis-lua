@@ -71,7 +71,7 @@ def parse_response_error_message(message):
         `None` if the parsing failed.
     """
     match = re.match(
-        r'ERR (?P<error>[^:]+): (?P<script>[\w_]+):(?P<line>\d+): '
+        r'(ERR )?(?P<error>[^:]+): (?P<script>[\w_]+):(?P<line>\d+): '
         '(?P<lua_error>.*)',
         message,
     )
