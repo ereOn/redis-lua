@@ -325,6 +325,17 @@ class ScriptParser(object):
             self.regions.append(region)
             self.arg_index += 1
 
+        def add_return_region(self, real_line, type_, content):
+            self.flush()
+
+            region = ReturnRegion(
+                type_=type_,
+                real_line=real_line,
+                line=real_line + self.offset,
+                content=content,
+            )
+            self.regions.append(region)
+
         def normalize(self):
             self.flush()
 
@@ -387,6 +398,9 @@ class ScriptParser(object):
                 continue
 
             elif self._parse_arg(context, real_line, statement):
+                continue
+
+            elif self._parse_return(context, real_line, statement):
                 continue
 
             else:
@@ -465,6 +479,37 @@ class ScriptParser(object):
             try:
                 context.add_argument_region(
                     name=name,
+                    type_=type_,
+                    real_line=real_line,
+                    content=statement,
+                )
+            except ValueError:
+                raise ValueError(
+                    "Unknown type %r in %r when parsing line %d" % (
+                        type_,
+                        statement,
+                        real_line,
+                    ),
+                )
+
+            return True
+
+    def _parse_return(
+        self,
+        context,
+        real_line,
+        statement,
+    ):
+        match = re.match(
+            r'^\s*%return\s+(?P<type>[\w\d_]+)\s*$',
+            statement,
+        )
+
+        if match:
+            type_ = match.group('type')
+
+            try:
+                context.add_return_region(
                     type_=type_,
                     real_line=real_line,
                     content=statement,

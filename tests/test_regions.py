@@ -1030,6 +1030,50 @@ class ScriptParserTests(TestCase):
             regions,
         )
 
+    def test_extract_regions_return(self):
+        contents = [
+            '%include "foo"',
+            '%return integer',
+        ]
+        content = '\n'.join(contents)
+        script = Script(
+            registered_client=MagicMock(),
+            name='foo',
+            regions=[
+                ReturnRegion(
+                    type_='string',
+                    real_line=1,
+                    line=1,
+                    content='%return string',
+                ),
+            ],
+        )
+        get_script_by_name = MagicMock(return_value=script)
+        regions = self.parser.parse_regions(
+            content=content,
+            current_path=".",
+            get_script_by_name=get_script_by_name,
+        )
+
+        self.maxDiff = None
+        self.assertEqual(
+            [
+                ScriptRegion(
+                    script=script,
+                    real_line=1,
+                    line=1,
+                    content='%include "foo"',
+                ),
+                ReturnRegion(
+                    type_='integer',
+                    real_line=2,
+                    line=2,
+                    content=contents[1],
+                ),
+            ],
+            regions,
+        )
+
     def test_extract_regions_text_last(self):
         contents = [
             '%arg arg1',
@@ -1117,6 +1161,27 @@ class ScriptParserTests(TestCase):
         self.assertEqual(
             (
                 "Unknown type 'unknowntype' in '%arg arg1 unknowntype' when "
+                "parsing line 1"
+            ),
+            str(error.exception),
+        )
+
+    def test_extract_regions_return_invalid(self):
+        contents = [
+            '%return unknowntype',
+        ]
+        content = '\n'.join(contents)
+
+        with self.assertRaises(ValueError) as error:
+            self.parser.parse_regions(
+                content=content,
+                current_path=".",
+                get_script_by_name=None,
+            )
+
+        self.assertEqual(
+            (
+                "Unknown type 'unknowntype' in '%return unknowntype' when "
                 "parsing line 1"
             ),
             str(error.exception),
