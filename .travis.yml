@@ -1,10 +1,15 @@
 language: python
 sudo: false
 env:
-  - TOXENV=pep8
-  - TOXENV=py27
-  - TOXENV=py34
-  - TOXENV=doc
+  global:
+    - REDIS_HOST=localhost
+  matrix:
+    - TOXENV=pep8
+    - TOXENV=py27
+    - TOXENV=py34
+    - TOXENV=doc
+services:
+  - redis-server
 install:
   - pip install tox
   - pip install coveralls
