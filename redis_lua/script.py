@@ -2,6 +2,7 @@
 LUA scripts-related functions.
 """
 
+import json
 import six
 
 from redis.client import Script as RedisScript
@@ -233,6 +234,10 @@ class Script(object):
             return int(value)
         elif type_ is bool:
             return 1 if value else 0
+        elif type_ is list:
+            return json.dumps(list(value))
+        elif type_ is dict:
+            return json.dumps(dict(value))
 
     @classmethod
     def convert_return_value_from_call(cls, type_, value):
@@ -242,6 +247,11 @@ class Script(object):
             return int(value)
         elif type_ is bool:
             return bool(value)
+        elif type_ in [list, dict]:
+            if isinstance(value, six.binary_type):
+                value = value.decode('utf-8')
+
+            return json.loads(value)
         else:
             return value
 

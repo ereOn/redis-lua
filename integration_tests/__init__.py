@@ -1,4 +1,3 @@
-import json
 import os
 
 from functools import wraps
@@ -96,12 +95,13 @@ def test_argument_types(redis):
         'i': 42,
         'b': False,
     }
-    result = json.loads(run_code(
+    result = run_code(
         client=redis,
         content="""
         %arg s string
         %arg i integer
         %arg b boolean
+        %return dict
 
         return cjson.encode({
             s=s,
@@ -110,6 +110,6 @@ def test_argument_types(redis):
         })
         """,
         kwargs=args,
-    ).decode('utf-8'))
+    )
 
     assert_equal(args, result)

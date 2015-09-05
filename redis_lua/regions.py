@@ -100,6 +100,10 @@ class ArgumentRegion(object):
         'str': str,
         'bool': bool,
         'boolean': bool,
+        'dict': dict,
+        'dictionary': dict,
+        'list': list,
+        'array': list,
     }
 
     @classmethod
@@ -169,6 +173,10 @@ class ReturnRegion(object):
         'str': str,
         'bool': bool,
         'boolean': bool,
+        'dict': dict,
+        'dictionary': dict,
+        'list': list,
+        'array': list,
     }
 
     @classmethod

@@ -1,3 +1,5 @@
+import json
+
 from mock import (
     MagicMock,
     patch,
@@ -581,6 +583,22 @@ class ObjectsScriptTests(TestCase):
                 line=6,
                 content='%arg arg3',
             ),
+            ArgumentRegion(
+                name='arg4',
+                index=4,
+                type_='list',
+                real_line=7,
+                line=7,
+                content='%arg arg4',
+            ),
+            ArgumentRegion(
+                name='arg5',
+                index=5,
+                type_='dict',
+                real_line=8,
+                line=8,
+                content='%arg arg5',
+            ),
         ]
         script = Script(
             name=name,
@@ -592,6 +610,8 @@ class ObjectsScriptTests(TestCase):
             arg1='ARG',
             arg2=2,
             arg3=False,
+            arg4=(1, 2.5, None, 'a'),
+            arg5={'b': None},
             key1='KEY',
             key2='KEY 2',
         )
@@ -600,7 +620,13 @@ class ObjectsScriptTests(TestCase):
         script.redis_script.assert_called_once_with(
             client=None,
             keys=['KEY', 'KEY 2'],
-            args=['ARG', 2, 0],
+            args=[
+                'ARG',
+                2,
+                0,
+                json.dumps([1, 2.5, None, 'a']),
+                json.dumps({'b': None}),
+            ],
         )
 
     @patch('redis_lua.script.RedisScript')
@@ -675,6 +701,60 @@ class ObjectsScriptTests(TestCase):
         result = script()
 
         self.assertEqual(True, result)
+        script.redis_script.assert_called_once_with(
+            client=None,
+            keys=[],
+            args=[],
+        )
+
+    @patch('redis_lua.script.RedisScript')
+    def test_script_call_return_as_list(self, RedisScriptMock):
+        name = 'foo'
+        regions = [
+            ReturnRegion(
+                type_='list',
+                real_line=1,
+                line=1,
+                content='%return list',
+            ),
+        ]
+        script = Script(
+            name=name,
+            regions=regions,
+            registered_client=MagicMock(),
+        )
+        value = [1, 'a', None, 3.5]
+        script.redis_script.return_value = json.dumps(value)
+        result = script()
+
+        self.assertEqual(value, result)
+        script.redis_script.assert_called_once_with(
+            client=None,
+            keys=[],
+            args=[],
+        )
+
+    @patch('redis_lua.script.RedisScript')
+    def test_script_call_return_as_dict(self, RedisScriptMock):
+        name = 'foo'
+        regions = [
+            ReturnRegion(
+                type_='list',
+                real_line=1,
+                line=1,
+                content='%return list',
+            ),
+        ]
+        script = Script(
+            name=name,
+            regions=regions,
+            registered_client=MagicMock(),
+        )
+        value = {'a': 1, 'b': 3.5, 'c': None, 'd': ['a', 2], 'e': 's'}
+        script.redis_script.return_value = json.dumps(value)
+        result = script()
+
+        self.assertEqual(value, result)
         script.redis_script.assert_called_once_with(
             client=None,
             keys=[],
