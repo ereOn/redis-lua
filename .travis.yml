@@ -4,6 +4,7 @@ env:
   - TOXENV=pep8
   - TOXENV=py27
   - TOXENV=py34
+  - TOXENV=doc
 install:
   - pip install tox
 script:
