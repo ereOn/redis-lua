@@ -1,0 +1,10 @@
+language: python
+sudo: false
+env:
+  - TOXENV=pep8
+  - TOXENV=py27
+  - TOXENV=py34
+install:
+  - pip install tox
+script:
+  - tox
