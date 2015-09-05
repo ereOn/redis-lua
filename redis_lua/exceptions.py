@@ -84,6 +84,20 @@ def parse_response_error_message(message):
             'lua_error': match.group('lua_error'),
         }
 
+    match = re.match(
+        r'(?P<error>[^:]+): ([\w@_\(\)]+:\d+): (?P<script>[\w_]+):(?P<line>\d+'
+        '): (?P<lua_error>.*)',
+        message,
+    )
+
+    if match:
+        return {
+            'error': match.group('error'),
+            'script': match.group('script'),
+            'line': int(match.group('line')),
+            'lua_error': match.group('lua_error'),
+        }
+
 
 @contextmanager
 def error_handler(script):

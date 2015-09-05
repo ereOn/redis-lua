@@ -8,6 +8,7 @@ from redis_lua.exceptions import (
     ScriptNotFoundError,
     CyclicDependencyError,
     ScriptError,
+    parse_response_error_message,
     error_handler,
 )
 
@@ -66,6 +67,27 @@ LUA Traceback (most recent script last):
                 lua_error=lua_error,
             ),
             str(exception),
+        )
+
+    def test_parse_response_error_message(self):
+        message = (
+            "Error running script (call to f_5b4ae8e72ea3e17bf3d44082ade715c88"
+            "f1a81ba): @enable_strict_lua:8: user_script:4: Script attempted t"
+            "o create global variable 'c'"
+        )
+        result = parse_response_error_message(message)
+
+        self.assertEqual(
+            {
+                'error': (
+                    "Error running script (call to f_5b4ae8e72ea3e17bf3d44082a"
+                    "de715c88f1a81ba)"
+                ),
+                'script': 'user_script',
+                'line': 4,
+                'lua_error': "Script attempted to create global variable 'c'",
+            },
+            result,
         )
 
     def test_error_handler(self):
