@@ -603,6 +603,84 @@ class ObjectsScriptTests(TestCase):
             args=['ARG', 2, 0],
         )
 
+    @patch('redis_lua.script.RedisScript')
+    def test_script_call_return_as_string(self, RedisScriptMock):
+        name = 'foo'
+        regions = [
+            ReturnRegion(
+                type_='string',
+                real_line=1,
+                line=1,
+                content='%return string',
+            ),
+        ]
+        script = Script(
+            name=name,
+            regions=regions,
+            registered_client=MagicMock(),
+        )
+        script.redis_script.return_value = 42
+        result = script()
+
+        self.assertEqual("42", result)
+        script.redis_script.assert_called_once_with(
+            client=None,
+            keys=[],
+            args=[],
+        )
+
+    @patch('redis_lua.script.RedisScript')
+    def test_script_call_return_as_integer(self, RedisScriptMock):
+        name = 'foo'
+        regions = [
+            ReturnRegion(
+                type_='integer',
+                real_line=1,
+                line=1,
+                content='%return integer',
+            ),
+        ]
+        script = Script(
+            name=name,
+            regions=regions,
+            registered_client=MagicMock(),
+        )
+        script.redis_script.return_value = "42"
+        result = script()
+
+        self.assertEqual(42, result)
+        script.redis_script.assert_called_once_with(
+            client=None,
+            keys=[],
+            args=[],
+        )
+
+    @patch('redis_lua.script.RedisScript')
+    def test_script_call_return_as_boolean(self, RedisScriptMock):
+        name = 'foo'
+        regions = [
+            ReturnRegion(
+                type_='boolean',
+                real_line=1,
+                line=1,
+                content='%return boolean',
+            ),
+        ]
+        script = Script(
+            name=name,
+            regions=regions,
+            registered_client=MagicMock(),
+        )
+        script.redis_script.return_value = 5
+        result = script()
+
+        self.assertEqual(True, result)
+        script.redis_script.assert_called_once_with(
+            client=None,
+            keys=[],
+            args=[],
+        )
+
     def test_script_call_missing_key(self):
         name = 'foo'
         regions = [

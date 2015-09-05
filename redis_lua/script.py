@@ -234,6 +234,17 @@ class Script(object):
         elif type_ is bool:
             return 1 if value else 0
 
+    @classmethod
+    def convert_return_value_from_call(cls, type_, value):
+        if type_ is str:
+            return str(value)
+        elif type_ is int:
+            return int(value)
+        elif type_ is bool:
+            return bool(value)
+        else:
+            return value
+
     def __call__(self, **kwargs):
         """
         Call the script with its named arguments.
@@ -289,8 +300,12 @@ class Script(object):
             )
 
         with error_handler(self):
-            return self.redis_script(
+            result = self.redis_script(
                 client=None,
                 keys=keys_params,
                 args=args_params,
+            )
+            return self.convert_return_value_from_call(
+                self.return_type,
+                result,
             )
