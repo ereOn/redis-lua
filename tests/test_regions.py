@@ -11,6 +11,7 @@ from redis_lua.regions import (
     TextRegion,
     KeyRegion,
     ArgumentRegion,
+    ReturnRegion,
     ScriptParser,
 )
 
@@ -359,6 +360,21 @@ class ArgumentRegionTests(TestCase):
         self.assertEqual(index, argument_region.index)
         self.assertEqual(line, argument_region.line)
 
+    def test_argument_region_invalid_instanciation(self):
+        name = 'foo'
+        index = 1
+        line = 7
+
+        with self.assertRaises(ValueError):
+            ArgumentRegion(
+                name=name,
+                index=index,
+                type_='unknown',
+                real_line=line,
+                line=line,
+                content='%arg foo',
+            )
+
     def test_argument_region_representation(self):
         name = 'foo'
         index = 1
@@ -519,6 +535,147 @@ class ArgumentRegionTests(TestCase):
         self.assertFalse(argument_region_a == argument_region_g)
         self.assertFalse(argument_region_a == argument_region_h)
         self.assertFalse(argument_region_a == 42)
+
+
+class ReturnRegionTests(TestCase):
+
+    def test_return_region_instanciation(self):
+        line = 7
+        return_region = ReturnRegion(
+            type_='string',
+            real_line=line,
+            line=line,
+            content='%return string',
+        )
+
+        self.assertEqual(line, return_region.line)
+
+    def test_return_region_invalid_instanciation(self):
+        line = 7
+
+        with self.assertRaises(ValueError):
+            ReturnRegion(
+                type_='unknown',
+                real_line=line,
+                line=line,
+                content='%return string',
+            )
+
+    def test_return_region_representation(self):
+        line = 7
+        return_region = ReturnRegion(
+            type_='string',
+            real_line=line,
+            line=line,
+            content='%return string',
+        )
+
+        self.assertEqual(
+            (
+                "ReturnRegion(real_line=7, line=7, line_count=1)"
+            ),
+            repr(return_region),
+        )
+
+    def test_return_region_line_count(self):
+        line = 7
+        return_region = ReturnRegion(
+            type_='string',
+            real_line=line,
+            line=line,
+            content='%return string',
+        )
+
+        self.assertEqual(1, return_region.line_count)
+        self.assertEqual(1, return_region.real_line_count)
+
+    def test_return_region_as_string(self):
+        line = 7
+        return_region = ReturnRegion(
+            type_='string',
+            real_line=line,
+            line=line,
+            content='%return string',
+        )
+
+        self.assertEqual(
+            "-- Expected return type is: %r" % str,
+            str(return_region),
+        )
+
+    def test_return_region_as_string_int_type(self):
+        line = 7
+        return_region = ReturnRegion(
+            type_='integer',
+            real_line=line,
+            line=line,
+            content='%arg bar',
+        )
+
+        self.assertEqual(
+            "-- Expected return type is: %r" % int,
+            str(return_region),
+        )
+
+    def test_return_region_as_string_bool_type(self):
+        line = 7
+        return_region = ReturnRegion(
+            type_='boolean',
+            real_line=line,
+            line=line,
+            content='%arg bar',
+        )
+
+        self.assertEqual(
+            "-- Expected return type is: %r" % bool,
+            str(return_region),
+        )
+
+    def test_return_region_equality(self):
+        return_region_a = ReturnRegion(
+            type_='string',
+            real_line=1,
+            line=2,
+            content='%return string',
+        )
+        return_region_b = ReturnRegion(
+            type_='string',
+            real_line=1,
+            line=2,
+            content='%return string',
+        )
+        return_region_c = ReturnRegion(
+            type_='integer',
+            real_line=1,
+            line=2,
+            content='%return integer',
+        )
+        return_region_d = ReturnRegion(
+            type_='string',
+            real_line=2,
+            line=2,
+            content='%return string',
+        )
+        return_region_e = ReturnRegion(
+            type_='string',
+            real_line=1,
+            line=3,
+            content='%return string',
+        )
+        return_region_f = ReturnRegion(
+            type_='string',
+            real_line=1,
+            line=3,
+            content='%return string',
+        )
+
+        self.assertIsNot(return_region_a, return_region_b)
+        self.assertTrue(return_region_a == return_region_b)
+        self.assertFalse(return_region_a == return_region_c)
+        self.assertFalse(return_region_a == return_region_d)
+        self.assertFalse(return_region_a == return_region_e)
+        self.assertFalse(return_region_a == return_region_f)
+        self.assertFalse(return_region_a == 42)
 
 
 class TextRegionTests(TestCase):

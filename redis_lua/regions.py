@@ -160,6 +160,59 @@ class ArgumentRegion(object):
 
 
 @six.python_2_unicode_compatible
+class ReturnRegion(object):
+    VALID_TYPES = {
+        None: str,
+        'int': int,
+        'integer': int,
+        'string': str,
+        'str': str,
+        'bool': bool,
+        'boolean': bool,
+    }
+
+    @classmethod
+    def get_valid_type(cls, type_):
+        result = cls.VALID_TYPES.get(type_)
+
+        if result is None:
+            raise ValueError("Invalid type '%s' for return" % type_)
+
+        return result
+
+    def __init__(self, type_, real_line, line, content):
+        self.type_ = self.get_valid_type(type_=type_)
+        self.real_line = real_line
+        self.line = line
+        self.line_count = 1
+        self.real_line_count = 1
+        self.content = content
+
+    def __repr__(self):
+        return (
+            '{_class}(real_line={self.real_line}, line={self.line}, '
+            'line_count={self.line_count})'
+        ).format(
+            _class=self.__class__.__name__,
+            self=self,
+        )
+
+    def __str__(self):
+        return '-- Expected return type is: %r' % self.type_
+
+    def __eq__(self, other):
+        if not isinstance(other, ReturnRegion):
+            return NotImplemented
+
+        return all([
+            other.type_ == self.type_,
+            other.real_line == self.real_line,
+            other.line == self.line,
+            other.content == self.content,
+        ])
+
+
+@six.python_2_unicode_compatible
 class TextRegion(object):
     __slots__ = [
         'content',
