@@ -9,6 +9,7 @@ from nose.tools import (
 from nose.plugins.skip import SkipTest
 
 from redis import Redis
+from redis.exceptions import TimeoutError
 from redis_lua import run_code
 from redis_lua.exceptions import ScriptError
 
@@ -25,7 +26,14 @@ if HAS_REDIS:
         port=REDIS_PORT,
         db=REDIS_DB,
         password=REDIS_PASSWORD,
+        socket_connect_timeout=1,
+        socket_timeout=1,
     )
+
+    try:
+        REDIS.ping()
+    except TimeoutError:
+        REDIS = None
 
 
 def skip_if_no_redis(func):
@@ -33,6 +41,13 @@ def skip_if_no_redis(func):
     def wrapper(*args, **kwargs):
         if not HAS_REDIS:
             raise SkipTest("No Redis server detected.")
+        elif not REDIS:
+            raise SkipTest(
+                "Unable to connect to the Redis server at %s:%s" % (
+                    REDIS_HOST,
+                    REDIS_PORT,
+                ),
+            )
 
         return func(*args, redis=REDIS, **kwargs)
 
