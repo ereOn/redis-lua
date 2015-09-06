@@ -39,6 +39,13 @@ class RenderContext(object):
                 name=name,
                 index=index,
             )
+        elif type_ in {list, dict}:
+            return (
+                "local {name} = cjson.decode(ARGV[{index}])"
+            ).format(
+                name=name,
+                index=index,
+            )
         else:
             return "local {name} = ARGV[{index}]".format(
                 name=name,

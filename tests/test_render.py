@@ -86,7 +86,7 @@ class RenderContextTests(TestCase):
             index=7,
         )
 
-        self.assertEqual('local myarg = ARGV[7]', result)
+        self.assertEqual('local myarg = cjson.decode(ARGV[7])', result)
 
     def test_render_arg_as_dict(self):
         result = self.render_context.render_arg(
@@ -95,7 +95,7 @@ class RenderContextTests(TestCase):
             index=7,
         )
 
-        self.assertEqual('local myarg = ARGV[7]', result)
+        self.assertEqual('local myarg = cjson.decode(ARGV[7])', result)
 
     def test_render_return(self):
         result = self.render_context.render_return(

@@ -94,6 +94,8 @@ def test_argument_types(redis):
         's': 'foo',
         'i': 42,
         'b': False,
+        'l': [1, 2, 'b', None, '5', 3.14],
+        'd': {'a': 'alpha', 'b': 5, 'c': None, 'd': 2.45},
     }
     result = run_code(
         client=redis,
@@ -101,12 +103,16 @@ def test_argument_types(redis):
         %arg s string
         %arg i integer
         %arg b boolean
+        %arg l list
+        %arg d dict
         %return dict
 
         return cjson.encode({
             s=s,
             i=i,
             b=b,
+            l=l,
+            d=d,
         })
         """,
         kwargs=args,
