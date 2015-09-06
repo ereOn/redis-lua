@@ -160,8 +160,11 @@ class ScriptRegionTests(TestCase):
             line=line,
             content='%include "foo"',
         )
+        render_context = MagicMock()
+        result = script_region.render(context=render_context)
 
-        self.assertEqual(script.content, str(script_region))
+        render_context.render_script.assert_called_once_with(script=script)
+        self.assertEqual(render_context.render_script.return_value, result)
 
     def test_script_region_equality(self):
         script = MagicMock(spec=Script)
@@ -277,8 +280,14 @@ class KeyRegionTests(TestCase):
             line=line,
             content='%key foo',
         )
+        render_context = MagicMock()
+        result = key_region.render(context=render_context)
 
-        self.assertEqual("local foo = KEYS[1]", str(key_region))
+        render_context.render_key.assert_called_once_with(
+            name=name,
+            index=index,
+        )
+        self.assertEqual(render_context.render_key.return_value, result)
 
     def test_key_region_equality(self):
         key_region_a = KeyRegion(
@@ -424,8 +433,15 @@ class ArgumentRegionTests(TestCase):
             line=line,
             content='%arg foo',
         )
+        render_context = MagicMock()
+        result = argument_region.render(context=render_context)
 
-        self.assertEqual("local foo = ARGV[1]", str(argument_region))
+        render_context.render_arg.assert_called_once_with(
+            name=name,
+            type_=str,
+            index=index,
+        )
+        self.assertEqual(render_context.render_arg.return_value, result)
 
     def test_argument_region_as_string_int_type(self):
         name = 'bar'
@@ -439,8 +455,15 @@ class ArgumentRegionTests(TestCase):
             line=line,
             content='%arg bar',
         )
+        render_context = MagicMock()
+        result = argument_region.render(context=render_context)
 
-        self.assertEqual("local bar = tonumber(ARGV[2])", str(argument_region))
+        render_context.render_arg.assert_called_once_with(
+            name=name,
+            type_=int,
+            index=index,
+        )
+        self.assertEqual(render_context.render_arg.return_value, result)
 
     def test_argument_region_as_string_bool_type(self):
         name = 'bar'
@@ -454,11 +477,15 @@ class ArgumentRegionTests(TestCase):
             line=line,
             content='%arg bar',
         )
+        render_context = MagicMock()
+        result = argument_region.render(context=render_context)
 
-        self.assertEqual(
-            "local bar = tonumber(ARGV[2]) ~= 0",
-            str(argument_region),
+        render_context.render_arg.assert_called_once_with(
+            name=name,
+            type_=bool,
+            index=index,
         )
+        self.assertEqual(render_context.render_arg.return_value, result)
 
     def test_argument_region_equality(self):
         argument_region_a = ArgumentRegion(
@@ -539,6 +566,9 @@ class ArgumentRegionTests(TestCase):
 
 class ReturnRegionTests(TestCase):
 
+    def setUp(self):
+        self.render_context = MagicMock()
+
     def test_return_region_instanciation(self):
         line = 7
         return_region = ReturnRegion(
@@ -597,11 +627,11 @@ class ReturnRegionTests(TestCase):
             line=line,
             content='%return string',
         )
+        render_context = MagicMock()
+        result = return_region.render(context=render_context)
 
-        self.assertEqual(
-            "-- Expected return type is: %r" % str,
-            str(return_region),
-        )
+        render_context.render_return.assert_called_once_with(type_=str)
+        self.assertEqual(render_context.render_return.return_value, result)
 
     def test_return_region_as_string_int_type(self):
         line = 7
@@ -611,11 +641,11 @@ class ReturnRegionTests(TestCase):
             line=line,
             content='%arg bar',
         )
+        render_context = MagicMock()
+        result = return_region.render(context=render_context)
 
-        self.assertEqual(
-            "-- Expected return type is: %r" % int,
-            str(return_region),
-        )
+        render_context.render_return.assert_called_once_with(type_=int)
+        self.assertEqual(render_context.render_return.return_value, result)
 
     def test_return_region_as_string_bool_type(self):
         line = 7
@@ -625,11 +655,11 @@ class ReturnRegionTests(TestCase):
             line=line,
             content='%arg bar',
         )
+        render_context = MagicMock()
+        result = return_region.render(context=render_context)
 
-        self.assertEqual(
-            "-- Expected return type is: %r" % bool,
-            str(return_region),
-        )
+        render_context.render_return.assert_called_once_with(type_=bool)
+        self.assertEqual(render_context.render_return.return_value, result)
 
     def test_return_region_equality(self):
         return_region_a = ReturnRegion(
@@ -706,12 +736,15 @@ class TextRegionTests(TestCase):
         self.assertEqual(3, text_region.line_count)
         self.assertEqual(3, text_region.real_line_count)
 
-    def test_text_region_as_string(self):
+    def test_text_region_render(self):
         content = 'a\nb\nc'
         line = 7
         text_region = TextRegion(content=content, real_line=line, line=line)
+        render_context = MagicMock()
+        result = text_region.render(context=render_context)
 
-        self.assertEqual(content, str(text_region))
+        render_context.render_text.assert_called_once_with(text=content)
+        self.assertEqual(render_context.render_text.return_value, result)
 
     def test_text_region_equality(self):
         content = 'a\nb\nc'
@@ -762,7 +795,7 @@ class ScriptParserTests(TestCase):
         )
 
         self.assertEqual(name, script.name)
-        self.assertEqual(content, script.content)
+        self.assertEqual(content, script.render())
         self.assertEqual(
             [
                 TextRegion(content=content, real_line=1, line=1),

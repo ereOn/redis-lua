@@ -4,10 +4,8 @@ Scripts regions.
 
 import os
 import re
-import six
 
 
-@six.python_2_unicode_compatible
 class ScriptRegion(object):
     def __init__(self, script, real_line, line, content):
         self.script = script
@@ -30,8 +28,8 @@ class ScriptRegion(object):
     def line_count(self):
         return self.script.line_count
 
-    def __str__(self):
-        return self.script.content
+    def render(self, context):
+        return context.render_script(script=self.script)
 
     def __eq__(self, other):
         if not isinstance(other, ScriptRegion):
@@ -53,7 +51,6 @@ class ScriptRegion(object):
         return self.script.args
 
 
-@six.python_2_unicode_compatible
 class KeyRegion(object):
     def __init__(self, name, index, real_line, line, content):
         self.name = name
@@ -74,8 +71,8 @@ class KeyRegion(object):
             self=self,
         )
 
-    def __str__(self):
-        return "local {self.name} = KEYS[{self.index}]".format(self=self)
+    def render(self, context):
+        return context.render_key(name=self.name, index=self.index)
 
     def __eq__(self, other):
         if not isinstance(other, KeyRegion):
@@ -90,7 +87,6 @@ class KeyRegion(object):
         ])
 
 
-@six.python_2_unicode_compatible
 class ArgumentRegion(object):
     VALID_TYPES = {
         None: str,
@@ -135,19 +131,12 @@ class ArgumentRegion(object):
             self=self,
         )
 
-    def __str__(self):
-        if self.type_ is int:
-            return "local {self.name} = tonumber(ARGV[{self.index}])".format(
-                self=self,
-            )
-        elif self.type_ is bool:
-            return (
-                "local {self.name} = tonumber(ARGV[{self.index}]) ~= 0"
-            ).format(
-                self=self,
-            )
-        else:
-            return "local {self.name} = ARGV[{self.index}]".format(self=self)
+    def render(self, context):
+        return context.render_arg(
+            name=self.name,
+            type_=self.type_,
+            index=self.index,
+        )
 
     def __eq__(self, other):
         if not isinstance(other, ArgumentRegion):
@@ -163,7 +152,6 @@ class ArgumentRegion(object):
         ])
 
 
-@six.python_2_unicode_compatible
 class ReturnRegion(object):
     VALID_TYPES = {
         None: str,
@@ -205,8 +193,8 @@ class ReturnRegion(object):
             self=self,
         )
 
-    def __str__(self):
-        return '-- Expected return type is: %r' % self.type_
+    def render(self, context):
+        return context.render_return(type_=self.type_)
 
     def __eq__(self, other):
         if not isinstance(other, ReturnRegion):
@@ -220,7 +208,6 @@ class ReturnRegion(object):
         ])
 
 
-@six.python_2_unicode_compatible
 class TextRegion(object):
     __slots__ = [
         'content',
@@ -246,8 +233,8 @@ class TextRegion(object):
             self=self,
         )
 
-    def __str__(self):
-        return self.content
+    def render(self, context):
+        return context.render_text(text=self.content)
 
     def __eq__(self, other):
         if not isinstance(other, TextRegion):

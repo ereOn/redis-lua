@@ -14,6 +14,7 @@ from .regions import (
     ReturnRegion,
     ScriptRegion,
 )
+from .render import RenderContext
 
 
 @six.python_2_unicode_compatible
@@ -114,7 +115,7 @@ class Script(object):
         self.regions = regions
         self.redis_script = RedisScript(
             registered_client=registered_client,
-            script=self.content,
+            script=self.render(),
         )
 
     def __repr__(self):
@@ -125,10 +126,6 @@ class Script(object):
 
     def __hash__(self):
         return hash(self.name)
-
-    @property
-    def content(self):
-        return '\n'.join(map(six.text_type, self.regions))
 
     @property
     def line_count(self):
@@ -195,6 +192,12 @@ class Script(object):
 
     def __str__(self):
         return self.name + ".lua"
+
+    def render(self, context=None):
+        if context is None:
+            context = RenderContext()
+
+        return context.render_script(self)
 
     def __eq__(self, other):
         if not isinstance(other, Script):

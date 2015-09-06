@@ -272,7 +272,7 @@ class ObjectsScriptTests(TestCase):
             repr(script),
         )
 
-    def test_script_content(self):
+    def test_script_render(self):
         name = 'foo'
         regions = [
             TextRegion(content='a', real_line=1, line=1),
@@ -285,7 +285,55 @@ class ObjectsScriptTests(TestCase):
             registered_client=MagicMock(),
         )
 
-        self.assertEqual('a\nb\nc', script.content)
+        self.assertEqual('a\nb\nc', script.render())
+
+    def test_script_render_with_duplicate_includes(self):
+        subsubscript = Script(
+            name='a',
+            regions=[
+                TextRegion(content='a', real_line=1, line=1),
+            ],
+            registered_client=MagicMock(),
+        )
+        subscript = Script(
+            name='b',
+            regions=[
+                TextRegion(content='b', real_line=1, line=1),
+                ScriptRegion(
+                    script=subsubscript,
+                    real_line=2,
+                    line=2,
+                    content='%include "a"',
+                ),
+            ],
+            registered_client=MagicMock(),
+        )
+        script = Script(
+            name='c',
+            regions=[
+                ScriptRegion(
+                    script=subsubscript,
+                    real_line=1,
+                    line=1,
+                    content='%include "a"',
+                ),
+                ScriptRegion(
+                    script=subscript,
+                    real_line=2,
+                    line=2,
+                    content='%include "b"',
+                ),
+                ScriptRegion(
+                    script=subscript,
+                    real_line=3,
+                    line=3,
+                    content='%include "b"',
+                ),
+            ],
+            registered_client=MagicMock(),
+        )
+
+        self.assertEqual('a\nb', script.render())
 
     def test_script_line_count(self):
         name = 'foo'
@@ -482,7 +530,7 @@ class ObjectsScriptTests(TestCase):
         )
         script_d = Script(
             name=name,
-            regions=regions + [1],
+            regions=regions + regions,
             registered_client=MagicMock(),
         )
 
