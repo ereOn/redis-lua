@@ -21,7 +21,7 @@ class ObjectsScriptTests(TestCase):
     def test_script_instanciation(self):
         name = 'foo'
         regions = [
-            TextRegion(content='a', real_line=1, line=1),
+            TextRegion(content='a'),
         ]
         script = Script(
             name=name,
@@ -50,36 +50,28 @@ class ObjectsScriptTests(TestCase):
             KeyRegion(
                 name="key2",
                 index=1,
-                real_line=1,
-                line=1,
                 content='%key key2',
             ),
-            TextRegion(content='local b = 0;', real_line=2, line=2),
+            TextRegion(content='local b = 0;'),
         ]
         regions = [
             KeyRegion(
                 name="key1",
                 index=1,
-                real_line=1,
-                line=1,
                 content='%key key1',
             ),
-            TextRegion(content='a', real_line=2, line=2),
+            TextRegion(content='a'),
             ScriptRegion(
                 script=Script(
                     name='bar',
                     regions=subregions,
                     registered_client=MagicMock(),
                 ),
-                real_line=3,
-                line=3,
                 content='%include "bar"',
             ),
             KeyRegion(
                 name="key3",
                 index=3,
-                real_line=5,
-                line=5,
                 content='%key key3',
             ),
         ]
@@ -104,15 +96,11 @@ class ObjectsScriptTests(TestCase):
             KeyRegion(
                 name="key1",
                 index=1,
-                real_line=1,
-                line=1,
                 content='%key key1',
             ),
             KeyRegion(
                 name="key2",
                 index=3,
-                real_line=2,
-                line=2,
                 content='%key key2',
             ),
         ]
@@ -130,38 +118,30 @@ class ObjectsScriptTests(TestCase):
                 name="arg2",
                 index=1,
                 type_='string',
-                real_line=1,
-                line=1,
                 content='%arg arg2',
             ),
-            TextRegion(content='local b = 0;', real_line=2, line=2),
+            TextRegion(content='local b = 0;'),
         ]
         regions = [
             ArgumentRegion(
                 name="arg1",
                 index=1,
                 type_='string',
-                real_line=1,
-                line=1,
                 content='%arg arg1',
             ),
-            TextRegion(content='a', real_line=2, line=2),
+            TextRegion(content='a'),
             ScriptRegion(
                 script=Script(
                     name='bar',
                     regions=subregions,
                     registered_client=MagicMock(),
                 ),
-                real_line=3,
-                line=3,
                 content='%include "bar"',
             ),
             ArgumentRegion(
                 name="arg3",
                 index=3,
                 type_='integer',
-                real_line=5,
-                line=5,
                 content='%arg arg3 integer',
             ),
         ]
@@ -187,16 +167,12 @@ class ObjectsScriptTests(TestCase):
                 name="arg1",
                 type_='string',
                 index=1,
-                real_line=1,
-                line=1,
                 content='%arg arg1',
             ),
             ArgumentRegion(
                 name="arg2",
                 type_='string',
                 index=3,
-                real_line=2,
-                line=2,
                 content='%arg arg2',
             ),
         ]
@@ -214,14 +190,10 @@ class ObjectsScriptTests(TestCase):
                 name="arg1",
                 type_='string',
                 index=1,
-                real_line=1,
-                line=1,
                 content='%arg arg1',
             ),
             ReturnRegion(
                 type_='integer',
-                real_line=2,
-                line=2,
                 content='%return integer',
             ),
         ]
@@ -238,14 +210,10 @@ class ObjectsScriptTests(TestCase):
         regions = [
             ReturnRegion(
                 type_='string',
-                real_line=1,
-                line=1,
                 content='%return string',
             ),
             ReturnRegion(
                 type_='integer',
-                real_line=1,
-                line=1,
                 content='%return integer',
             ),
         ]
@@ -259,7 +227,7 @@ class ObjectsScriptTests(TestCase):
     def test_script_representation(self):
         name = 'foo'
         regions = [
-            TextRegion(content='a', real_line=1, line=1),
+            TextRegion(content='a'),
         ]
         script = Script(
             name=name,
@@ -275,9 +243,9 @@ class ObjectsScriptTests(TestCase):
     def test_script_render(self):
         name = 'foo'
         regions = [
-            TextRegion(content='a', real_line=1, line=1),
-            TextRegion(content='b', real_line=2, line=2),
-            TextRegion(content='c', real_line=3, line=3),
+            TextRegion(content='a'),
+            TextRegion(content='b'),
+            TextRegion(content='c'),
         ]
         script = Script(
             name=name,
@@ -291,18 +259,16 @@ class ObjectsScriptTests(TestCase):
         subsubscript = Script(
             name='a',
             regions=[
-                TextRegion(content='a', real_line=1, line=1),
+                TextRegion(content='a'),
             ],
             registered_client=MagicMock(),
         )
         subscript = Script(
             name='b',
             regions=[
-                TextRegion(content='b', real_line=1, line=1),
+                TextRegion(content='b'),
                 ScriptRegion(
                     script=subsubscript,
-                    real_line=2,
-                    line=2,
                     content='%include "a"',
                 ),
             ],
@@ -313,20 +279,14 @@ class ObjectsScriptTests(TestCase):
             regions=[
                 ScriptRegion(
                     script=subsubscript,
-                    real_line=1,
-                    line=1,
                     content='%include "a"',
                 ),
                 ScriptRegion(
                     script=subscript,
-                    real_line=2,
-                    line=2,
                     content='%include "b"',
                 ),
                 ScriptRegion(
                     script=subscript,
-                    real_line=3,
-                    line=3,
                     content='%include "b"',
                 ),
             ],
@@ -338,9 +298,9 @@ class ObjectsScriptTests(TestCase):
     def test_script_line_count(self):
         name = 'foo'
         regions = [
-            TextRegion(content='a', real_line=1, line=1),
-            TextRegion(content='b', real_line=2, line=2),
-            TextRegion(content='c', real_line=3, line=3),
+            TextRegion(content='a'),
+            TextRegion(content='b'),
+            TextRegion(content='c'),
         ]
         script = Script(
             name=name,
@@ -354,23 +314,21 @@ class ObjectsScriptTests(TestCase):
     def test_script_get_real_line_content(self):
         name = 'foo'
         subregions = [
-            TextRegion(content='e\nf\ng', real_line=1, line=1),
+            TextRegion(content='e\nf\ng'),
         ]
         regions = [
-            TextRegion(content='a', real_line=1, line=1),
-            TextRegion(content='b', real_line=2, line=2),
-            TextRegion(content='c\nd', real_line=3, line=3),
+            TextRegion(content='a'),
+            TextRegion(content='b'),
+            TextRegion(content='c\nd'),
             ScriptRegion(
                 script=Script(
                     name='bar',
                     regions=subregions,
                     registered_client=MagicMock(),
                 ),
-                real_line=5,
-                line=5,
                 content='%include "bar"',
             ),
-            TextRegion(content='h', real_line=6, line=8),
+            TextRegion(content='h'),
         ]
         script = Script(
             name=name,
@@ -394,85 +352,85 @@ class ObjectsScriptTests(TestCase):
             script.get_real_line_content(9)
 
     def test_script_get_scripts_for_line(self):
-        subscript = Script(
-            name='bar',
+        script_a = Script(
+            name='a',
             regions=[
-                TextRegion(content='c\nd', real_line=1, line=1),
+                TextRegion(content='>c\n>d'),
+            ],
+            registered_client=MagicMock(),
+        )
+        script_b = Script(
+            name='b',
+            regions=[
+                TextRegion(content='>f\n>g'),
             ],
             registered_client=MagicMock(),
         )
         script = Script(
             name='foo',
             regions=[
-                TextRegion(content='a', real_line=1, line=1),
-                TextRegion(content='b', real_line=2, line=2),
+                TextRegion(content='a'),
+                TextRegion(content='b'),
                 ScriptRegion(
-                    script=subscript,
-                    real_line=3,
-                    line=3,
-                    content='%include "bar"',
+                    script=script_a,
+                    content='%include "a"',
                 ),
-                TextRegion(content='e', real_line=4, line=5),
+                TextRegion(content='e'),
                 ScriptRegion(
-                    script=subscript,
-                    real_line=5,
-                    line=6,
-                    content='%include "bar"',
+                    script=script_b,
+                    content='%include "b"',
                 ),
-                TextRegion(content='f\ng\nh', real_line=6, line=8),
+                # Next script inclusion will be ignored as the script was
+                # already included.
+                # It won't be possible to get an error from this inclusion line
+                # so we expect a like skip.
+                ScriptRegion(
+                    script=script_a,
+                    content='%include "a"',
+                ),
+                TextRegion(content='h\ni\nj'),
             ],
             registered_client=MagicMock(),
         )
 
-        with self.assertRaises(ValueError):
-            script.get_scripts_for_line(0)
-
-        self.assertEqual([(script, 1)], script.get_scripts_for_line(1))
-        self.assertEqual([(script, 2)], script.get_scripts_for_line(2))
-        self.assertEqual(
-            [(script, 3), (subscript, 1)],
-            script.get_scripts_for_line(3),
-        )
-        self.assertEqual(
-            [(script, 3), (subscript, 2)],
-            script.get_scripts_for_line(4),
-        )
-        self.assertEqual([(script, 4)], script.get_scripts_for_line(5))
-        self.assertEqual(
-            [(script, 5), (subscript, 1)],
-            script.get_scripts_for_line(6),
-        )
-        self.assertEqual(
-            [(script, 5), (subscript, 2)],
-            script.get_scripts_for_line(7),
-        )
-        self.assertEqual([(script, 6)], script.get_scripts_for_line(8))
-        self.assertEqual([(script, 7)], script.get_scripts_for_line(9))
-        self.assertEqual([(script, 8)], script.get_scripts_for_line(10))
+        get_scripts_for_line = script.get_scripts_for_line
 
         with self.assertRaises(ValueError):
-            script.get_scripts_for_line(11)
+            get_scripts_for_line(0)
 
-    def test_script_get_region_for_line(self):
+        self.assertEqual([(script, 1)], get_scripts_for_line(1))
+        self.assertEqual([(script, 2)], get_scripts_for_line(2))
+        self.assertEqual([(script, 3), (script_a, 1)], get_scripts_for_line(3))
+        self.assertEqual([(script, 3), (script_a, 2)], get_scripts_for_line(4))
+        self.assertEqual([(script, 4)], get_scripts_for_line(5))
+        self.assertEqual([(script, 5), (script_b, 1)], get_scripts_for_line(6))
+        self.assertEqual([(script, 5), (script_b, 2)], get_scripts_for_line(7))
+        # Here goes the line skip.
+        self.assertEqual([(script, 7)], get_scripts_for_line(8))
+        self.assertEqual([(script, 8)], get_scripts_for_line(9))
+        self.assertEqual([(script, 9)], get_scripts_for_line(10))
+
+        with self.assertRaises(ValueError):
+            get_scripts_for_line(11)
+
+    def test_script_get_line_info(self):
         name = 'foo'
         subregions = [
-            TextRegion(content='e\nf\ng', real_line=1, line=1),
+            TextRegion(content='e\nf\ng'),
         ]
         regions = [
-            TextRegion(content='a', real_line=1, line=1),
-            TextRegion(content='b', real_line=2, line=2),
-            TextRegion(content='c\nd', real_line=3, line=3),
+            TextRegion(content='a'),
+            TextRegion(content='b'),
+            TextRegion(content='c\nd'),
             ScriptRegion(
                 script=Script(
                     name='bar',
                     regions=subregions,
                     registered_client=MagicMock(),
                 ),
-                real_line=5,
-                line=5,
                 content='%include "bar"',
             ),
-            TextRegion(content='h', real_line=6, line=8),
+            TextRegion(content='h'),
         ]
         script = Script(
             name=name,
@@ -480,25 +438,86 @@ class ObjectsScriptTests(TestCase):
             registered_client=MagicMock(),
         )
 
-        with self.assertRaises(ValueError):
-            script.get_region_for_line(0)
-
-        self.assertEqual((regions[0], 1), script.get_region_for_line(1))
-        self.assertEqual((regions[1], 2), script.get_region_for_line(2))
-        self.assertEqual((regions[2], 3), script.get_region_for_line(3))
-        self.assertEqual((regions[2], 4), script.get_region_for_line(4))
-        self.assertEqual((regions[3], 5), script.get_region_for_line(5))
-        self.assertEqual((regions[3], 5), script.get_region_for_line(6))
-        self.assertEqual((regions[3], 5), script.get_region_for_line(7))
-        self.assertEqual((regions[4], 6), script.get_region_for_line(8))
+        get_line_info = script.get_line_info
 
         with self.assertRaises(ValueError):
-            script.get_region_for_line(9)
+            get_line_info(0)
+
+        self.assertEqual((1, 1, 1, 1, 1, 1, regions[0]), get_line_info(1))
+        self.assertEqual((2, 2, 1, 2, 2, 1, regions[1]), get_line_info(2))
+        self.assertEqual((3, 3, 2, 3, 3, 2, regions[2]), get_line_info(3))
+        self.assertEqual((3, 4, 2, 3, 4, 2, regions[2]), get_line_info(4))
+        self.assertEqual((5, 5, 1, 5, 5, 3, regions[3]), get_line_info(5))
+        self.assertEqual((5, 5, 1, 5, 6, 3, regions[3]), get_line_info(6))
+        self.assertEqual((5, 5, 1, 5, 7, 3, regions[3]), get_line_info(7))
+        self.assertEqual((6, 6, 1, 8, 8, 1, regions[4]), get_line_info(8))
+
+        with self.assertRaises(ValueError):
+            get_line_info(9)
+
+    def test_script_get_line_info_multiple_includes(self):
+        name = 'a'
+        c_regions = [
+            TextRegion(content='4\n5\n6'),
+        ]
+        c_script = Script(
+            name='c',
+            regions=c_regions,
+            registered_client=MagicMock(),
+        )
+        b_regions = [
+            TextRegion(content='1\n2\n3'),
+            ScriptRegion(
+                script=c_script,
+                content='%include "c"',
+            ),
+        ]
+        b_script = Script(
+            name='b',
+            regions=b_regions,
+            registered_client=MagicMock(),
+        )
+        a_regions = [
+            ScriptRegion(
+                script=b_script,
+                content='%include "b"',
+            ),
+            ScriptRegion(
+                script=c_script,
+                content='%include "c"',
+            ),
+            ScriptRegion(
+                script=c_script,
+                content='%include "c"',
+            ),
+            TextRegion(content='7'),
+        ]
+        script = Script(
+            name=name,
+            regions=a_regions,
+            registered_client=MagicMock(),
+        )
+
+        get_line_info = script.get_line_info
+
+        with self.assertRaises(ValueError):
+            get_line_info(0)
+
+        self.assertEqual((1, 1, 1, 1, 1, 6, a_regions[0]), get_line_info(1))
+        self.assertEqual((1, 1, 1, 1, 2, 6, a_regions[0]), get_line_info(2))
+        self.assertEqual((1, 1, 1, 1, 3, 6, a_regions[0]), get_line_info(3))
+        self.assertEqual((1, 1, 1, 1, 4, 6, a_regions[0]), get_line_info(4))
+        self.assertEqual((1, 1, 1, 1, 5, 6, a_regions[0]), get_line_info(5))
+        self.assertEqual((1, 1, 1, 1, 6, 6, a_regions[0]), get_line_info(6))
+        self.assertEqual((4, 4, 1, 7, 7, 1, a_regions[3]), get_line_info(7))
+
+        with self.assertRaises(ValueError):
+            get_line_info(8)
 
     def test_script_as_string(self):
         name = 'foo'
         regions = [
-            TextRegion(content='a', real_line=1, line=1),
+            TextRegion(content='a'),
         ]
         script = Script(
             name=name,
@@ -511,7 +530,7 @@ class ObjectsScriptTests(TestCase):
     def test_script_equality(self):
         name = 'name'
         regions = [
-            TextRegion(content='a', real_line=1, line=1),
+            TextRegion(content='a'),
         ]
         script_a = Script(
             name=name,
@@ -551,8 +570,6 @@ class ObjectsScriptTests(TestCase):
             KeyRegion(
                 name='key1',
                 index=1,
-                real_line=1,
-                line=1,
                 content='%key key1',
             ),
         ]
@@ -572,8 +589,6 @@ class ObjectsScriptTests(TestCase):
             KeyRegion(
                 name='key1',
                 index=1,
-                real_line=1,
-                line=1,
                 content='%key key1',
             ),
         ]
@@ -595,56 +610,42 @@ class ObjectsScriptTests(TestCase):
             KeyRegion(
                 name='key1',
                 index=1,
-                real_line=1,
-                line=1,
                 content='%key key1',
             ),
             ArgumentRegion(
                 name='arg1',
                 index=1,
                 type_='string',
-                real_line=2,
-                line=2,
                 content='%arg arg1',
             ),
-            TextRegion(content='b', real_line=3, line=3),
+            TextRegion(content='b'),
             KeyRegion(
                 name='key2',
                 index=2,
-                real_line=4,
-                line=4,
                 content='%key key2',
             ),
             ArgumentRegion(
                 name='arg2',
                 index=2,
                 type_='integer',
-                real_line=5,
-                line=5,
                 content='%arg arg2',
             ),
             ArgumentRegion(
                 name='arg3',
                 index=3,
                 type_='bool',
-                real_line=6,
-                line=6,
                 content='%arg arg3',
             ),
             ArgumentRegion(
                 name='arg4',
                 index=4,
                 type_='list',
-                real_line=7,
-                line=7,
                 content='%arg arg4',
             ),
             ArgumentRegion(
                 name='arg5',
                 index=5,
                 type_='dict',
-                real_line=8,
-                line=8,
                 content='%arg arg5',
             ),
         ]
@@ -683,8 +684,6 @@ class ObjectsScriptTests(TestCase):
         regions = [
             ReturnRegion(
                 type_='string',
-                real_line=1,
-                line=1,
                 content='%return string',
             ),
         ]
@@ -709,8 +708,6 @@ class ObjectsScriptTests(TestCase):
         regions = [
             ReturnRegion(
                 type_='integer',
-                real_line=1,
-                line=1,
                 content='%return integer',
             ),
         ]
@@ -735,8 +732,6 @@ class ObjectsScriptTests(TestCase):
         regions = [
             ReturnRegion(
                 type_='boolean',
-                real_line=1,
-                line=1,
                 content='%return boolean',
             ),
         ]
@@ -761,8 +756,6 @@ class ObjectsScriptTests(TestCase):
         regions = [
             ReturnRegion(
                 type_='list',
-                real_line=1,
-                line=1,
                 content='%return list',
             ),
         ]
@@ -788,8 +781,6 @@ class ObjectsScriptTests(TestCase):
         regions = [
             ReturnRegion(
                 type_='list',
-                real_line=1,
-                line=1,
                 content='%return list',
             ),
         ]
@@ -815,16 +806,12 @@ class ObjectsScriptTests(TestCase):
             KeyRegion(
                 name='key1',
                 index=1,
-                real_line=1,
-                line=1,
                 content='%key key1',
             ),
             ArgumentRegion(
                 name='arg1',
                 index=1,
                 type_='string',
-                real_line=2,
-                line=2,
                 content='%arg arg1',
             ),
         ]
@@ -843,16 +830,12 @@ class ObjectsScriptTests(TestCase):
             KeyRegion(
                 name='key1',
                 index=1,
-                real_line=1,
-                line=1,
                 content='%key key1',
             ),
             ArgumentRegion(
                 name='arg1',
                 index=1,
                 type_='string',
-                real_line=2,
-                line=2,
                 content='%arg arg1',
             ),
         ]
@@ -871,16 +854,12 @@ class ObjectsScriptTests(TestCase):
             KeyRegion(
                 name='key1',
                 index=1,
-                real_line=1,
-                line=1,
                 content='%key key1',
             ),
             ArgumentRegion(
                 name='arg1',
                 index=1,
                 type_='string',
-                real_line=2,
-                line=2,
                 content='%arg arg1',
             ),
         ]

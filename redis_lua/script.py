@@ -5,6 +5,7 @@ LUA scripts-related functions.
 import json
 import six
 
+from collections import namedtuple
 from redis.client import Script as RedisScript
 
 from .exceptions import error_handler
@@ -86,6 +87,69 @@ class Script(object):
 
         return result
 
+    LineInfo = namedtuple(
+        '_LineInfo',
+        [
+            'first_real_line',
+            'real_line',
+            'real_line_count',
+            'first_line',
+            'line',
+            'line_count',
+            'region',
+        ],
+    )
+
+    @classmethod
+    def get_line_info_for_regions(cls, regions, included_scripts):
+        """
+        Get a list of tuples (first_real_line, real_line, real_line_count,
+        first_line, line, line_count, region) for the specified list of
+        regions.
+
+        :params regions: A list of regions to get the line information from.
+        :params included_scripts: A set of scripts that were visited already.
+        :returns: A list of tuples.
+        """
+        result = []
+        real_line = 1
+        line = 1
+
+        def add_region(real_line, line, region):
+            if region.line_count:
+                result.append(
+                    cls.LineInfo(
+                        real_line,
+                        real_line,
+                        region.real_line_count,
+                        line,
+                        line,
+                        region.line_count,
+                        region,
+                    ),
+                )
+
+        for region in regions:
+            if isinstance(region, ScriptRegion):
+                if region.script in included_scripts:
+                    real_line += region.real_line_count
+                    continue
+
+                included_scripts.add(region.script)
+                sub_result = cls.get_line_info_for_regions(
+                    regions=region.script.regions,
+                    included_scripts=included_scripts,
+                )
+                add_region(real_line, line, region)
+                real_line += region.real_line_count
+                line += sub_result[-1].line + sub_result[-1].line_count - 1
+            else:
+                add_region(real_line, line, region)
+                real_line += region.real_line_count
+                line += region.line_count
+
+        return result
+
     def __init__(self, name, regions, registered_client):
         """
         Create a new script object.
@@ -102,6 +166,7 @@ class Script(object):
         self.keys = self.get_keys_from_regions(regions)
         self.args = self.get_args_from_regions(regions)
         self.return_type = self.get_return_from_regions(regions)
+        self.line_infos = self.get_line_info_for_regions(regions, {self})
 
         duplicates = set(self.keys) & {arg for arg, _ in self.args}
 
@@ -129,11 +194,15 @@ class Script(object):
 
     @property
     def line_count(self):
-        return sum(region.line_count for region in self.regions)
+        info = self.line_infos[-1]
+
+        return info.line + info.line_count - 1
 
     @property
     def real_line_count(self):
-        return sum(region.real_line_count for region in self.regions)
+        info = self.line_infos[-1]
+
+        return info.real_line + info.real_line_count - 1
 
     def get_real_line_content(self, line):
         """
@@ -142,12 +211,12 @@ class Script(object):
         :param line: The line.
         :returns: A line content.
         """
-        region, real_line = self.get_region_for_line(line)
+        info = self.get_line_info(line)
 
-        if isinstance(region, ScriptRegion):
-            return region.content
+        if isinstance(info.region, ScriptRegion):
+            return info.region.content
         else:
-            return region.content.split('\n')[real_line - region.real_line]
+            return info.region.content.split('\n')[line - info.first_line]
 
     def get_scripts_for_line(self, line):
         """
@@ -156,39 +225,43 @@ class Script(object):
         :param line: The line.
         :returns: A list of (script, line) that got traversed by that line.
         """
-        region, real_line = self.get_region_for_line(line)
-        result = [(self, real_line)]
+        info = self.get_line_info(line)
+        result = [(self, info.real_line)]
 
-        if isinstance(region, ScriptRegion):
+        if isinstance(info.region, ScriptRegion):
             result.extend(
-                region.script.get_scripts_for_line(line - region.line + 1),
+                info.region.script.get_scripts_for_line(
+                    line - info.first_line + 1,
+                ),
             )
 
         return result
 
-    def get_region_for_line(self, line):
+    def get_line_info(self, line):
         """
-        Get the region and real line in this script that matches the specified
-        line.
+        Get the line information for the specified line.
 
         :param line: The line.
-        :returns: The (region, real_line) or `ValueError` if no such line
-            exists.
+        :returns: The (real_line, real_line_count, line, line_count, region)
+            tuple or `ValueError` if no such line exists.
         """
         if line < 1 or line > self.line_count:
             raise ValueError("No such line %d in script %s" % (line, self))
 
-        for index, region in reversed(list(enumerate(self.regions))):
-            if region.line <= line:
-                if isinstance(region, ScriptRegion):
-                    return region, region.real_line
-                else:
-                    real_lines_before = sum(
-                        region.real_line_count
-                        for region in self.regions[:index]
-                    )
-
-                    return region, real_lines_before + (line - region.line) + 1
+        for info in self.line_infos:
+            if line >= info.line and line < info.line + info.line_count:
+                return self.LineInfo(
+                    first_real_line=info.first_real_line,
+                    real_line=info.real_line + min(
+                        line - info.line,
+                        info.real_line_count - 1,
+                    ),
+                    real_line_count=info.real_line_count,
+                    first_line=info.first_line,
+                    line=line,
+                    line_count=info.line_count,
+                    region=info.region,
+                )
 
     def __str__(self):
         return self.name + ".lua"

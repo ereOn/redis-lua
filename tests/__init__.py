@@ -75,7 +75,7 @@ def test_load_scripts_cache_hit():
         'foo': Script(
             registered_client=MagicMock(),
             name='foo',
-            regions=[TextRegion(content='', real_line=1, line=1)],
+            regions=[TextRegion(content='')],
         ),
     }
     scripts = load_scripts(

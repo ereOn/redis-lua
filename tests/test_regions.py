@@ -21,45 +21,38 @@ class ScriptRegionTests(TestCase):
     def test_script_region_instanciation(self):
         name = 'foo'
         regions = [
-            TextRegion(content='a', real_line=1, line=1),
+            TextRegion(content='a'),
         ]
         script = Script(
             name=name,
             regions=regions,
             registered_client=MagicMock(),
         )
-        line = 7
         script_region = ScriptRegion(
             script=script,
-            real_line=line,
-            line=line,
             content='%include "foo"',
         )
 
         self.assertEqual(script, script_region.script)
-        self.assertEqual(line, script_region.line)
 
     def test_script_region_representation(self):
         name = 'foo'
         regions = [
-            TextRegion(content='a', real_line=1, line=1),
+            TextRegion(content='a'),
         ]
         script = Script(
             name=name,
             regions=regions,
             registered_client=MagicMock(),
         )
-        line = 7
         script_region = ScriptRegion(
             script=script,
-            real_line=line,
-            line=line,
             content='%include "foo"',
         )
 
         self.assertEqual(
             (
-                "ScriptRegion(real_line=7, line=7, line_count=1, "
+                "ScriptRegion(real_line_count=1, line_count=1, "
                 "script='foo.lua', content='%include \"foo\"')"
             ),
             repr(script_region),
@@ -68,19 +61,16 @@ class ScriptRegionTests(TestCase):
     def test_script_region_line_count(self):
         name = 'foo'
         regions = [
-            TextRegion(content='a', real_line=1, line=1),
-            TextRegion(content='b', real_line=2, line=2),
+            TextRegion(content='a'),
+            TextRegion(content='b'),
         ]
         script = Script(
             name=name,
             regions=regions,
             registered_client=MagicMock(),
         )
-        line = 7
         script_region = ScriptRegion(
             script=script,
-            real_line=line,
-            line=line,
             content='%include "foo"',
         )
 
@@ -93,22 +83,17 @@ class ScriptRegionTests(TestCase):
             KeyRegion(
                 name='key1',
                 index=1,
-                real_line=1,
-                line=1,
                 content='%key key1',
             ),
-            TextRegion(content='b', real_line=2, line=2),
+            TextRegion(content='b'),
         ]
         script = Script(
             name=name,
             regions=regions,
             registered_client=MagicMock(),
         )
-        line = 7
         script_region = ScriptRegion(
             script=script,
-            real_line=line,
-            line=line,
             content='%include "foo"',
         )
 
@@ -121,22 +106,17 @@ class ScriptRegionTests(TestCase):
                 name='arg1',
                 index=1,
                 type_='string',
-                real_line=1,
-                line=1,
                 content='%arg arg1',
             ),
-            TextRegion(content='b', real_line=2, line=2),
+            TextRegion(content='b'),
         ]
         script = Script(
             name=name,
             regions=regions,
             registered_client=MagicMock(),
         )
-        line = 7
         script_region = ScriptRegion(
             script=script,
-            real_line=line,
-            line=line,
             content='%include "foo"',
         )
 
@@ -145,19 +125,16 @@ class ScriptRegionTests(TestCase):
     def test_script_region_as_string(self):
         name = 'foo'
         regions = [
-            TextRegion(content='a', real_line=1, line=1),
-            TextRegion(content='b', real_line=2, line=2),
+            TextRegion(content='a'),
+            TextRegion(content='b'),
         ]
         script = Script(
             name=name,
             regions=regions,
             registered_client=MagicMock(),
         )
-        line = 7
         script_region = ScriptRegion(
             script=script,
-            real_line=line,
-            line=line,
             content='%include "foo"',
         )
         render_context = MagicMock()
@@ -169,41 +146,20 @@ class ScriptRegionTests(TestCase):
     def test_script_region_equality(self):
         script = MagicMock(spec=Script)
         other_script = MagicMock(spec=Script)
-        line = 7
         script_region_a = ScriptRegion(
             script=script,
-            real_line=line,
-            line=line,
             content='%include "foo"',
         )
         script_region_b = ScriptRegion(
             script=script,
-            real_line=line,
-            line=line,
             content='%include "foo"',
         )
         script_region_c = ScriptRegion(
             script=other_script,
-            real_line=line,
-            line=line,
-            content='%include "foo"',
+            content='%include "bar"',
         )
         script_region_d = ScriptRegion(
             script=script,
-            real_line=line + 42,
-            line=line,
-            content='%include "foo"',
-        )
-        script_region_e = ScriptRegion(
-            script=script,
-            real_line=line,
-            line=line + 42,
-            content='%include "foo"',
-        )
-        script_region_f = ScriptRegion(
-            script=script,
-            real_line=line,
-            line=line,
             content='%include "bar"',
         )
 
@@ -211,8 +167,6 @@ class ScriptRegionTests(TestCase):
         self.assertTrue(script_region_a == script_region_b)
         self.assertFalse(script_region_a == script_region_c)
         self.assertFalse(script_region_a == script_region_d)
-        self.assertFalse(script_region_a == script_region_e)
-        self.assertFalse(script_region_a == script_region_f)
         self.assertFalse(script_region_a == 42)
 
 
@@ -221,35 +175,27 @@ class KeyRegionTests(TestCase):
     def test_key_region_instanciation(self):
         name = 'foo'
         index = 1
-        line = 7
         key_region = KeyRegion(
             name=name,
             index=index,
-            real_line=line,
-            line=line,
             content='%key foo',
         )
 
         self.assertEqual(name, key_region.name)
         self.assertEqual(index, key_region.index)
-        self.assertEqual(line, key_region.line)
 
     def test_key_region_representation(self):
         name = 'foo'
         index = 1
-        line = 7
         key_region = KeyRegion(
             name=name,
             index=index,
-            real_line=line,
-            line=line,
             content='%key foo',
         )
 
         self.assertEqual(
             (
-                "KeyRegion(real_line=7, line=7, line_count=1, "
-                "name='foo', content='%key foo')"
+                "KeyRegion(line_count=1, name='foo', content='%key foo')"
             ),
             repr(key_region),
         )
@@ -257,12 +203,9 @@ class KeyRegionTests(TestCase):
     def test_key_region_line_count(self):
         name = 'foo'
         index = 1
-        line = 7
         key_region = KeyRegion(
             name=name,
             index=index,
-            real_line=line,
-            line=line,
             content='%key foo',
         )
 
@@ -272,12 +215,9 @@ class KeyRegionTests(TestCase):
     def test_key_region_as_string(self):
         name = 'foo'
         index = 1
-        line = 7
         key_region = KeyRegion(
             name=name,
             index=index,
-            real_line=line,
-            line=line,
             content='%key foo',
         )
         render_context = MagicMock()
@@ -293,50 +233,26 @@ class KeyRegionTests(TestCase):
         key_region_a = KeyRegion(
             name="foo",
             index=1,
-            real_line=1,
-            line=2,
             content='%key foo',
         )
         key_region_b = KeyRegion(
             name="foo",
             index=1,
-            real_line=1,
-            line=2,
             content='%key foo',
         )
         key_region_c = KeyRegion(
             name="bar",
             index=1,
-            real_line=1,
-            line=2,
             content='%key foo',
         )
         key_region_d = KeyRegion(
             name="foo",
             index=2,
-            real_line=1,
-            line=2,
             content='%key foo',
         )
         key_region_e = KeyRegion(
             name="foo",
             index=1,
-            real_line=2,
-            line=2,
-            content='%key foo',
-        )
-        key_region_f = KeyRegion(
-            name="foo",
-            index=1,
-            real_line=1,
-            line=3,
-            content='%key foo',
-        )
-        key_region_g = KeyRegion(
-            name="foo",
-            index=1,
-            real_line=1,
-            line=3,
             content='%key bar',
         )
 
@@ -345,8 +261,6 @@ class KeyRegionTests(TestCase):
         self.assertFalse(key_region_a == key_region_c)
         self.assertFalse(key_region_a == key_region_d)
         self.assertFalse(key_region_a == key_region_e)
-        self.assertFalse(key_region_a == key_region_f)
-        self.assertFalse(key_region_a == key_region_g)
         self.assertFalse(key_region_a == 42)
 
 
@@ -355,66 +269,50 @@ class ArgumentRegionTests(TestCase):
     def test_argument_region_instanciation(self):
         name = 'foo'
         index = 1
-        line = 7
         argument_region = ArgumentRegion(
             name=name,
             index=index,
             type_='string',
-            real_line=line,
-            line=line,
             content='%arg foo',
         )
 
         self.assertEqual(name, argument_region.name)
         self.assertEqual(index, argument_region.index)
-        self.assertEqual(line, argument_region.line)
 
     def test_argument_region_invalid_instanciation(self):
         name = 'foo'
         index = 1
-        line = 7
 
         with self.assertRaises(ValueError):
             ArgumentRegion(
                 name=name,
                 index=index,
                 type_='unknown',
-                real_line=line,
-                line=line,
                 content='%arg foo',
             )
 
     def test_argument_region_representation(self):
         name = 'foo'
         index = 1
-        line = 7
         argument_region = ArgumentRegion(
             name=name,
             index=index,
             type_='string',
-            real_line=line,
-            line=line,
             content='%arg foo',
         )
 
         self.assertEqual(
-            (
-                "ArgumentRegion(real_line=7, line=7, line_count=1, "
-                "name='foo', content='%arg foo')"
-            ),
+            "ArgumentRegion(line_count=1, name='foo', content='%arg foo')",
             repr(argument_region),
         )
 
     def test_argument_region_line_count(self):
         name = 'foo'
         index = 1
-        line = 7
         argument_region = ArgumentRegion(
             name=name,
             index=index,
             type_='string',
-            real_line=line,
-            line=line,
             content='%arg foo',
         )
 
@@ -424,13 +322,10 @@ class ArgumentRegionTests(TestCase):
     def test_argument_region_as_string(self):
         name = 'foo'
         index = 1
-        line = 7
         argument_region = ArgumentRegion(
             name=name,
             index=index,
             type_='string',
-            real_line=line,
-            line=line,
             content='%arg foo',
         )
         render_context = MagicMock()
@@ -446,13 +341,10 @@ class ArgumentRegionTests(TestCase):
     def test_argument_region_as_string_int_type(self):
         name = 'bar'
         index = 2
-        line = 7
         argument_region = ArgumentRegion(
             name=name,
             index=index,
             type_='integer',
-            real_line=line,
-            line=line,
             content='%arg bar',
         )
         render_context = MagicMock()
@@ -468,13 +360,10 @@ class ArgumentRegionTests(TestCase):
     def test_argument_region_as_string_bool_type(self):
         name = 'bar'
         index = 2
-        line = 7
         argument_region = ArgumentRegion(
             name=name,
             index=index,
             type_='boolean',
-            real_line=line,
-            line=line,
             content='%arg bar',
         )
         render_context = MagicMock()
@@ -492,64 +381,36 @@ class ArgumentRegionTests(TestCase):
             name="foo",
             index=1,
             type_='string',
-            real_line=1,
-            line=2,
             content='%arg foo',
         )
         argument_region_b = ArgumentRegion(
             name="foo",
             index=1,
             type_='string',
-            real_line=1,
-            line=2,
             content='%arg foo',
         )
         argument_region_c = ArgumentRegion(
             name="bar",
             index=1,
             type_='string',
-            real_line=1,
-            line=2,
             content='%arg foo',
         )
         argument_region_d = ArgumentRegion(
             name="foo",
             index=2,
             type_='string',
-            real_line=1,
-            line=2,
             content='%arg foo',
         )
         argument_region_e = ArgumentRegion(
             name="foo",
             index=2,
             type_='integer',
-            real_line=1,
-            line=2,
             content='%arg foo',
         )
         argument_region_f = ArgumentRegion(
             name="foo",
             index=1,
             type_='string',
-            real_line=2,
-            line=2,
-            content='%arg foo',
-        )
-        argument_region_g = ArgumentRegion(
-            name="foo",
-            index=1,
-            type_='string',
-            real_line=1,
-            line=3,
-            content='%arg foo',
-        )
-        argument_region_h = ArgumentRegion(
-            name="foo",
-            index=1,
-            type_='string',
-            real_line=1,
-            line=3,
             content='%arg bar',
         )
 
@@ -559,8 +420,6 @@ class ArgumentRegionTests(TestCase):
         self.assertFalse(argument_region_a == argument_region_d)
         self.assertFalse(argument_region_a == argument_region_e)
         self.assertFalse(argument_region_a == argument_region_f)
-        self.assertFalse(argument_region_a == argument_region_g)
-        self.assertFalse(argument_region_a == argument_region_h)
         self.assertFalse(argument_region_a == 42)
 
 
@@ -570,49 +429,36 @@ class ReturnRegionTests(TestCase):
         self.render_context = MagicMock()
 
     def test_return_region_instanciation(self):
-        line = 7
         return_region = ReturnRegion(
             type_='string',
-            real_line=line,
-            line=line,
             content='%return string',
         )
 
-        self.assertEqual(line, return_region.line)
+        self.assertEqual(str, return_region.type_)
 
     def test_return_region_invalid_instanciation(self):
-        line = 7
-
         with self.assertRaises(ValueError):
             ReturnRegion(
                 type_='unknown',
-                real_line=line,
-                line=line,
                 content='%return string',
             )
 
     def test_return_region_representation(self):
-        line = 7
         return_region = ReturnRegion(
             type_='string',
-            real_line=line,
-            line=line,
             content='%return string',
         )
 
         self.assertEqual(
             (
-                "ReturnRegion(real_line=7, line=7, line_count=1)"
+                "ReturnRegion(line_count=1)"
             ),
             repr(return_region),
         )
 
     def test_return_region_line_count(self):
-        line = 7
         return_region = ReturnRegion(
             type_='string',
-            real_line=line,
-            line=line,
             content='%return string',
         )
 
@@ -620,11 +466,8 @@ class ReturnRegionTests(TestCase):
         self.assertEqual(1, return_region.real_line_count)
 
     def test_return_region_as_string(self):
-        line = 7
         return_region = ReturnRegion(
             type_='string',
-            real_line=line,
-            line=line,
             content='%return string',
         )
         render_context = MagicMock()
@@ -634,12 +477,9 @@ class ReturnRegionTests(TestCase):
         self.assertEqual(render_context.render_return.return_value, result)
 
     def test_return_region_as_string_int_type(self):
-        line = 7
         return_region = ReturnRegion(
             type_='integer',
-            real_line=line,
-            line=line,
-            content='%arg bar',
+            content='%return integer',
         )
         render_context = MagicMock()
         result = return_region.render(context=render_context)
@@ -648,12 +488,9 @@ class ReturnRegionTests(TestCase):
         self.assertEqual(render_context.render_return.return_value, result)
 
     def test_return_region_as_string_bool_type(self):
-        line = 7
         return_region = ReturnRegion(
             type_='boolean',
-            real_line=line,
-            line=line,
-            content='%arg bar',
+            content='%return bool',
         )
         render_context = MagicMock()
         result = return_region.render(context=render_context)
@@ -661,50 +498,45 @@ class ReturnRegionTests(TestCase):
         render_context.render_return.assert_called_once_with(type_=bool)
         self.assertEqual(render_context.render_return.return_value, result)
 
+    def test_return_region_as_string_list_type(self):
+        return_region = ReturnRegion(
+            type_='list',
+            content='%return list',
+        )
+        render_context = MagicMock()
+        result = return_region.render(context=render_context)
+
+        render_context.render_return.assert_called_once_with(type_=list)
+        self.assertEqual(render_context.render_return.return_value, result)
+
+    def test_return_region_as_string_dict_type(self):
+        return_region = ReturnRegion(
+            type_='dict',
+            content='%return dict',
+        )
+        render_context = MagicMock()
+        result = return_region.render(context=render_context)
+
+        render_context.render_return.assert_called_once_with(type_=dict)
+        self.assertEqual(render_context.render_return.return_value, result)
+
     def test_return_region_equality(self):
         return_region_a = ReturnRegion(
             type_='string',
-            real_line=1,
-            line=2,
             content='%return string',
         )
         return_region_b = ReturnRegion(
             type_='string',
-            real_line=1,
-            line=2,
             content='%return string',
         )
         return_region_c = ReturnRegion(
             type_='integer',
-            real_line=1,
-            line=2,
             content='%return integer',
-        )
-        return_region_d = ReturnRegion(
-            type_='string',
-            real_line=2,
-            line=2,
-            content='%return string',
-        )
-        return_region_e = ReturnRegion(
-            type_='string',
-            real_line=1,
-            line=3,
-            content='%return string',
-        )
-        return_region_f = ReturnRegion(
-            type_='string',
-            real_line=1,
-            line=3,
-            content='%return string',
         )
 
         self.assertIsNot(return_region_a, return_region_b)
         self.assertTrue(return_region_a == return_region_b)
         self.assertFalse(return_region_a == return_region_c)
-        self.assertFalse(return_region_a == return_region_d)
-        self.assertFalse(return_region_a == return_region_e)
-        self.assertFalse(return_region_a == return_region_f)
         self.assertFalse(return_region_a == 42)
 
 
@@ -712,34 +544,29 @@ class TextRegionTests(TestCase):
 
     def test_text_region_instanciation(self):
         content = 'a\nb\nc'
-        line = 7
-        text_region = TextRegion(content=content, real_line=line, line=line)
+        text_region = TextRegion(content=content)
 
         self.assertEqual(content, text_region.content)
-        self.assertEqual(line, text_region.line)
 
     def test_text_region_representation(self):
         content = 'a\nb\nc'
-        line = 7
-        text_region = TextRegion(content=content, real_line=line, line=line)
+        text_region = TextRegion(content=content)
 
         self.assertEqual(
-            "TextRegion(real_line=7, line=7, line_count=3)",
+            "TextRegion(line_count=3)",
             repr(text_region),
         )
 
     def test_text_region_line_count(self):
         content = 'a\nb\nc'
-        line = 7
-        text_region = TextRegion(content=content, real_line=line, line=line)
+        text_region = TextRegion(content=content)
 
         self.assertEqual(3, text_region.line_count)
         self.assertEqual(3, text_region.real_line_count)
 
     def test_text_region_render(self):
         content = 'a\nb\nc'
-        line = 7
-        text_region = TextRegion(content=content, real_line=line, line=line)
+        text_region = TextRegion(content=content)
         render_context = MagicMock()
         result = text_region.render(context=render_context)
 
@@ -748,30 +575,13 @@ class TextRegionTests(TestCase):
 
     def test_text_region_equality(self):
         content = 'a\nb\nc'
-        line = 7
-        text_region_a = TextRegion(content=content, real_line=line, line=line)
-        text_region_b = TextRegion(content=content, real_line=line, line=line)
-        text_region_c = TextRegion(
-            content=content + 'd',
-            real_line=line,
-            line=line,
-        )
-        text_region_d = TextRegion(
-            content=content,
-            real_line=line + 42,
-            line=line,
-        )
-        text_region_e = TextRegion(
-            content=content,
-            real_line=line,
-            line=line + 42,
-        )
+        text_region_a = TextRegion(content=content)
+        text_region_b = TextRegion(content=content)
+        text_region_c = TextRegion(content=content + 'd')
 
         self.assertIsNot(text_region_a, text_region_b)
         self.assertTrue(text_region_a == text_region_b)
         self.assertFalse(text_region_a == text_region_c)
-        self.assertFalse(text_region_a == text_region_d)
-        self.assertFalse(text_region_a == text_region_e)
         self.assertFalse(text_region_a == 42)
 
 
@@ -798,7 +608,7 @@ class ScriptParserTests(TestCase):
         self.assertEqual(content, script.render())
         self.assertEqual(
             [
-                TextRegion(content=content, real_line=1, line=1),
+                TextRegion(content=content),
             ],
             script.regions,
         )
@@ -862,7 +672,7 @@ class ScriptParserTests(TestCase):
 
         self.assertEqual(
             [
-                TextRegion(content=content, real_line=1, line=1),
+                TextRegion(content=content),
             ],
             regions,
         )
@@ -884,11 +694,7 @@ class ScriptParserTests(TestCase):
             registered_client=MagicMock(),
             name='foo',
             regions=[
-                TextRegion(
-                    content='local b = 2;\nlocal c = 3;',
-                    real_line=1,
-                    line=1,
-                ),
+                TextRegion(content='local b = 2;\nlocal c = 3;'),
             ],
         )
         get_script_by_name = MagicMock(return_value=script)
@@ -901,27 +707,21 @@ class ScriptParserTests(TestCase):
         self.maxDiff = None
         self.assertEqual(
             [
-                TextRegion(content=contents[0], real_line=1, line=1),
+                TextRegion(content=contents[0]),
                 ScriptRegion(
                     script=script,
-                    real_line=2,
-                    line=2,
                     content='%include "foo"',
                 ),
-                TextRegion(content=contents[2], real_line=3, line=4),
+                TextRegion(content=contents[2]),
                 ScriptRegion(
                     script=script,
-                    real_line=4,
-                    line=5,
                     content='%include "foo"',
                 ),
                 ScriptRegion(
                     script=script,
-                    real_line=5,
-                    line=7,
                     content='%include "foo"',
                 ),
-                TextRegion(content=contents[5], real_line=6, line=9),
+                TextRegion(content=contents[5]),
             ],
             regions,
         )
@@ -948,8 +748,6 @@ class ScriptParserTests(TestCase):
                 KeyRegion(
                     name='key2',
                     index=1,
-                    real_line=1,
-                    line=1,
                     content='%key key2',
                 ),
             ],
@@ -967,21 +765,15 @@ class ScriptParserTests(TestCase):
                 KeyRegion(
                     name='key1',
                     index=1,
-                    real_line=1,
-                    line=1,
                     content=contents[0],
                 ),
                 ScriptRegion(
                     script=script,
-                    real_line=2,
-                    line=2,
                     content='%include "foo"',
                 ),
                 KeyRegion(
                     name='key3',
                     index=3,
-                    real_line=3,
-                    line=3,
                     content=contents[2],
                 ),
             ],
@@ -1005,8 +797,6 @@ class ScriptParserTests(TestCase):
                     name='arg2',
                     index=1,
                     type_='string',
-                    real_line=1,
-                    line=1,
                     content='%arg arg2',
                 ),
             ],
@@ -1025,38 +815,28 @@ class ScriptParserTests(TestCase):
                     name='arg1',
                     index=1,
                     type_='string',
-                    real_line=1,
-                    line=1,
                     content=contents[0],
                 ),
                 ScriptRegion(
                     script=script,
-                    real_line=2,
-                    line=2,
                     content='%include "foo"',
                 ),
                 ArgumentRegion(
                     name='arg3',
                     index=3,
                     type_='string',
-                    real_line=3,
-                    line=3,
                     content=contents[2],
                 ),
                 ArgumentRegion(
                     name='arg4',
                     index=4,
                     type_='integer',
-                    real_line=4,
-                    line=4,
                     content=contents[3],
                 ),
                 ArgumentRegion(
                     name='arg5',
                     index=5,
                     type_='boolean',
-                    real_line=5,
-                    line=5,
                     content=contents[4],
                 ),
             ],
@@ -1075,8 +855,6 @@ class ScriptParserTests(TestCase):
             regions=[
                 ReturnRegion(
                     type_='string',
-                    real_line=1,
-                    line=1,
                     content='%return string',
                 ),
             ],
@@ -1093,14 +871,10 @@ class ScriptParserTests(TestCase):
             [
                 ScriptRegion(
                     script=script,
-                    real_line=1,
-                    line=1,
                     content='%include "foo"',
                 ),
                 ReturnRegion(
                     type_='integer',
-                    real_line=2,
-                    line=2,
                     content=contents[1],
                 ),
             ],
@@ -1125,15 +899,11 @@ class ScriptParserTests(TestCase):
                     name='arg2',
                     index=1,
                     type_='string',
-                    real_line=1,
-                    line=1,
                     content='%arg arg2',
                 ),
                 KeyRegion(
                     name='key1',
                     index=1,
-                    real_line=2,
-                    line=2,
                     content='%key key1',
                 ),
             ],
@@ -1152,28 +922,18 @@ class ScriptParserTests(TestCase):
                     name='arg1',
                     index=1,
                     type_='string',
-                    real_line=1,
-                    line=1,
                     content=contents[0],
                 ),
                 ScriptRegion(
                     script=script,
-                    real_line=2,
-                    line=2,
                     content='%include "foo"',
                 ),
                 KeyRegion(
                     name='key2',
                     index=2,
-                    real_line=3,
-                    line=4,
                     content=contents[2],
                 ),
-                TextRegion(
-                    real_line=4,
-                    line=5,
-                    content='\n'.join(contents[3:6]),
-                ),
+                TextRegion(content='\n'.join(contents[3:6])),
             ],
             regions,
         )
