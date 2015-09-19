@@ -116,18 +116,17 @@ class Script(object):
         line = 1
 
         def add_region(real_line, line, region):
-            if region.line_count:
-                result.append(
-                    cls.LineInfo(
-                        real_line,
-                        real_line,
-                        region.real_line_count,
-                        line,
-                        line,
-                        region.line_count,
-                        region,
-                    ),
-                )
+            result.append(
+                cls.LineInfo(
+                    real_line,
+                    real_line,
+                    region.real_line_count,
+                    line,
+                    line,
+                    region.line_count,
+                    region,
+                ),
+            )
 
         for region in regions:
             if isinstance(region, ScriptRegion):
@@ -245,9 +244,6 @@ class Script(object):
         :returns: The (real_line, real_line_count, line, line_count, region)
             tuple or `ValueError` if no such line exists.
         """
-        if line < 1 or line > self.line_count:
-            raise ValueError("No such line %d in script %s" % (line, self))
-
         for info in self.line_infos:
             if line >= info.line and line < info.line + info.line_count:
                 return self.LineInfo(
@@ -262,6 +258,8 @@ class Script(object):
                     line_count=info.line_count,
                     region=info.region,
                 )
+
+        raise ValueError("No such line %d in script %s" % (line, self))
 
     def __str__(self):
         return self.name + ".lua"
@@ -304,9 +302,7 @@ class Script(object):
 
     @classmethod
     def convert_argument_for_call(cls, type_, value):
-        if type_ is str:
-            return str(value)
-        elif type_ is int:
+        if type_ is int:
             return int(value)
         elif type_ is bool:
             return 1 if value else 0
@@ -314,6 +310,8 @@ class Script(object):
             return json.dumps(list(value))
         elif type_ is dict:
             return json.dumps(dict(value))
+        else:
+            return str(value)
 
     @classmethod
     def convert_return_value_from_call(cls, type_, value):

@@ -13,6 +13,7 @@ from nose.tools import (
     assert_in,
     assert_is,
     assert_raises,
+    assert_not_equal,
 )
 
 from redis_lua import (
@@ -55,6 +56,28 @@ def test_load_all_scripts_no_cache():
         },
         scripts,
     )
+
+
+def test_load_all_scripts_cache():
+    cache = {}
+    scripts = load_all_scripts(
+        registered_client=MagicMock(),
+        path=LUA_SEARCH_PATH,
+        cache=cache,
+    )
+
+    assert_equal(
+        {
+            'error': ANY,
+            'json': ANY,
+            'sum': ANY,
+            'unicode': ANY,
+            'subdir/a': ANY,
+            'subdir/b': ANY,
+        },
+        scripts,
+    )
+    assert_not_equal({}, cache)
 
 
 def test_load_scripts_no_cache():
@@ -159,7 +182,11 @@ def test_read_script_unicode():
         ) as _file:
             reference_content = _file.read()
 
-    content, path = read_script(name='unicode', path=LUA_SEARCH_PATH)
+    content, path = read_script(
+        name='unicode',
+        path=LUA_SEARCH_PATH,
+        encoding='utf-8',
+    )
 
     assert_equal(reference_content, content)
     assert_equal(LUA_SEARCH_PATH, path)
@@ -269,5 +296,21 @@ def test_run_code():
         return sum(3, 4);
         """,
         path=LUA_SEARCH_PATH,
+    )
+    assert_equal(client.evalsha(), result)
+
+
+def test_run_code_with_args():
+    client = MagicMock()
+    result = run_code(
+        client=client,
+        content="""
+        %arg a int
+        %arg b int
+        %include "sum"
+        return sum(a, b);
+        """,
+        path=LUA_SEARCH_PATH,
+        kwargs={'a': 1, 'b': 2},
     )
     assert_equal(client.evalsha(), result)

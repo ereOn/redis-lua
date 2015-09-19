@@ -244,6 +244,22 @@ class ObjectsScriptTests(TestCase):
         name = 'foo'
         regions = [
             TextRegion(content='a'),
+        ]
+        script = Script(
+            name=name,
+            regions=regions,
+            registered_client=MagicMock(),
+        )
+        context = MagicMock()
+        result = script.render(context=context)
+
+        self.assertEqual(context.render_script.return_value, result)
+        context.render_script.assert_called_once_with(script)
+
+    def test_script_render_default(self):
+        name = 'foo'
+        regions = [
+            TextRegion(content='a'),
             TextRegion(content='b'),
             TextRegion(content='c'),
         ]
