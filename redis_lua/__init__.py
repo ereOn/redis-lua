@@ -15,12 +15,10 @@ from .regions import ScriptParser
 from .script import Script
 
 
-def load_all_scripts(registered_client, path, cache=None):
+def load_all_scripts(path, cache=None):
     """
     Load all the LUA scripts found at the specified location.
 
-    :param registered_client: The Redis client or pipeline instance to
-        associate the resulting scripts with.
     :param path: A path to search into for LUA scripts.
     :param cache: A cache of scripts to use to fasten loading. If some `names`
         are in the `cache`, then they are taken from it.
@@ -34,7 +32,6 @@ def load_all_scripts(registered_client, path, cache=None):
     for root, dirs, files in os.walk(path):
         prefix = os.path.relpath(root, path)
         scripts.update(load_scripts(
-            registered_client=registered_client,
             names=[
                 os.path.splitext(
                     os.path.normpath(os.path.join(prefix, file_)),
@@ -48,12 +45,10 @@ def load_all_scripts(registered_client, path, cache=None):
     return scripts
 
 
-def load_scripts(registered_client, names, path, cache=None):
+def load_scripts(names, path, cache=None):
     """
     Load several LUA scripts.
 
-    :param registered_client: The Redis client or pipeline instance to
-        associate the resulting scripts with.
     :param names: An iterable of LUA scripts names to load. If some names
         contain backslashes, those will be replaced with forward slashes
         silently.
@@ -74,7 +69,6 @@ def load_scripts(registered_client, names, path, cache=None):
         script.name: script
         for script in (
             load_script(
-                registered_client=registered_client,
                 name=name,
                 path=path,
                 cache=cache,
@@ -84,12 +78,10 @@ def load_scripts(registered_client, names, path, cache=None):
     }
 
 
-def load_script(registered_client, name, path, cache=None, ancestors=None):
+def load_script(name, path, cache=None, ancestors=None):
     """
     Load a LUA script.
 
-    :param registered_client: The Redis client or pipeline instance to
-        associate the resulting script with.
     :param name: The name of the LUA script to load, relative to the search
         `path`, without the '.lua' extension. If the name contains backslashes,
         those will be replaced with forward slashes silently.
@@ -109,7 +101,6 @@ def load_script(registered_client, name, path, cache=None, ancestors=None):
     content, path = read_script(name=name, path=path)
 
     return parse_script(
-        registered_client=registered_client,
         name=name,
         content=content,
         path=path,
@@ -122,12 +113,7 @@ def _get_cycle(name, ancestors):
     return ancestors[ancestors.index(name):] + [name]
 
 
-def _get_script_class_on(script_class, registered_client):
-    return partial(script_class, registered_client=registered_client)
-
-
 def parse_script(
-    registered_client,
     name,
     content,
     path=None,
@@ -137,8 +123,6 @@ def parse_script(
     """
     Parse a LUA script.
 
-    :param registered_client: The Redis client or pipeline instance to
-        associate the resulting script with.
     :param name: The name of the LUA script to parse.
     :param content: The content of the script.
     :param path: The path of the script. Can be `None` if the script was loaded
@@ -163,10 +147,9 @@ def parse_script(
     script = ScriptParser().parse(
         name=name,
         content=content,
-        script_class=_get_script_class_on(Script, registered_client),
+        script_class=Script,
         get_script_by_name=partial(
             load_script,
-            registered_client=registered_client,
             path=path,
             cache=cache,
             ancestors=ancestors + [name],
@@ -235,7 +218,6 @@ def run_code(
     """
     name = '<user-code>'
     script = parse_script(
-        registered_client=client,
         name=name,
         content=content,
         path=path,
@@ -245,4 +227,4 @@ def run_code(
     if not kwargs:
         kwargs = {}
 
-    return script(**kwargs)
+    return script.run(client, **kwargs)

@@ -26,7 +26,6 @@ class ObjectsScriptTests(TestCase):
         script = Script(
             name=name,
             regions=regions,
-            registered_client=MagicMock(),
         )
 
         self.assertEqual(name, script.name)
@@ -41,7 +40,6 @@ class ObjectsScriptTests(TestCase):
             Script(
                 name=name,
                 regions=regions,
-                registered_client=MagicMock(),
             )
 
     def test_script_instanciation_with_keys(self):
@@ -65,7 +63,6 @@ class ObjectsScriptTests(TestCase):
                 script=Script(
                     name='bar',
                     regions=subregions,
-                    registered_client=MagicMock(),
                 ),
                 content='%include "bar"',
             ),
@@ -78,7 +75,6 @@ class ObjectsScriptTests(TestCase):
         script = Script(
             name=name,
             regions=regions,
-            registered_client=MagicMock(),
         )
 
         self.assertEqual(
@@ -108,7 +104,6 @@ class ObjectsScriptTests(TestCase):
             Script(
                 name=name,
                 regions=regions,
-                registered_client=MagicMock(),
             )
 
     def test_script_instanciation_with_args(self):
@@ -134,7 +129,6 @@ class ObjectsScriptTests(TestCase):
                 script=Script(
                     name='bar',
                     regions=subregions,
-                    registered_client=MagicMock(),
                 ),
                 content='%include "bar"',
             ),
@@ -148,7 +142,6 @@ class ObjectsScriptTests(TestCase):
         script = Script(
             name=name,
             regions=regions,
-            registered_client=MagicMock(),
         )
 
         self.assertEqual(
@@ -180,7 +173,6 @@ class ObjectsScriptTests(TestCase):
             Script(
                 name=name,
                 regions=regions,
-                registered_client=MagicMock(),
             )
 
     def test_script_instanciation_with_return_statement(self):
@@ -200,7 +192,6 @@ class ObjectsScriptTests(TestCase):
         script = Script(
             name=name,
             regions=regions,
-            registered_client=MagicMock(),
         )
 
         self.assertIs(int, script.return_type)
@@ -221,7 +212,6 @@ class ObjectsScriptTests(TestCase):
             Script(
                 name=name,
                 regions=regions,
-                registered_client=MagicMock(),
             )
 
     def test_script_representation(self):
@@ -232,7 +222,6 @@ class ObjectsScriptTests(TestCase):
         script = Script(
             name=name,
             regions=regions,
-            registered_client=MagicMock(),
         )
 
         self.assertEqual(
@@ -248,7 +237,6 @@ class ObjectsScriptTests(TestCase):
         script = Script(
             name=name,
             regions=regions,
-            registered_client=MagicMock(),
         )
         context = MagicMock()
         result = script.render(context=context)
@@ -266,7 +254,6 @@ class ObjectsScriptTests(TestCase):
         script = Script(
             name=name,
             regions=regions,
-            registered_client=MagicMock(),
         )
 
         self.assertEqual('a\nb\nc', script.render())
@@ -277,7 +264,6 @@ class ObjectsScriptTests(TestCase):
             regions=[
                 TextRegion(content='a'),
             ],
-            registered_client=MagicMock(),
         )
         subscript = Script(
             name='b',
@@ -288,7 +274,6 @@ class ObjectsScriptTests(TestCase):
                     content='%include "a"',
                 ),
             ],
-            registered_client=MagicMock(),
         )
         script = Script(
             name='c',
@@ -306,7 +291,6 @@ class ObjectsScriptTests(TestCase):
                     content='%include "b"',
                 ),
             ],
-            registered_client=MagicMock(),
         )
 
         self.assertEqual('a\nb', script.render())
@@ -321,7 +305,6 @@ class ObjectsScriptTests(TestCase):
         script = Script(
             name=name,
             regions=regions,
-            registered_client=MagicMock(),
         )
 
         self.assertEqual(3, script.line_count)
@@ -340,7 +323,6 @@ class ObjectsScriptTests(TestCase):
                 script=Script(
                     name='bar',
                     regions=subregions,
-                    registered_client=MagicMock(),
                 ),
                 content='%include "bar"',
             ),
@@ -349,7 +331,6 @@ class ObjectsScriptTests(TestCase):
         script = Script(
             name=name,
             regions=regions,
-            registered_client=MagicMock(),
         )
 
         with self.assertRaises(ValueError):
@@ -373,14 +354,12 @@ class ObjectsScriptTests(TestCase):
             regions=[
                 TextRegion(content='>c\n>d'),
             ],
-            registered_client=MagicMock(),
         )
         script_b = Script(
             name='b',
             regions=[
                 TextRegion(content='>f\n>g'),
             ],
-            registered_client=MagicMock(),
         )
         script = Script(
             name='foo',
@@ -406,7 +385,6 @@ class ObjectsScriptTests(TestCase):
                 ),
                 TextRegion(content='h\ni\nj'),
             ],
-            registered_client=MagicMock(),
         )
 
         get_scripts_for_line = script.get_scripts_for_line
@@ -442,7 +420,6 @@ class ObjectsScriptTests(TestCase):
                 script=Script(
                     name='bar',
                     regions=subregions,
-                    registered_client=MagicMock(),
                 ),
                 content='%include "bar"',
             ),
@@ -451,7 +428,6 @@ class ObjectsScriptTests(TestCase):
         script = Script(
             name=name,
             regions=regions,
-            registered_client=MagicMock(),
         )
 
         get_line_info = script.get_line_info
@@ -479,7 +455,6 @@ class ObjectsScriptTests(TestCase):
         c_script = Script(
             name='c',
             regions=c_regions,
-            registered_client=MagicMock(),
         )
         b_regions = [
             TextRegion(content='1\n2\n3'),
@@ -491,7 +466,6 @@ class ObjectsScriptTests(TestCase):
         b_script = Script(
             name='b',
             regions=b_regions,
-            registered_client=MagicMock(),
         )
         a_regions = [
             ScriptRegion(
@@ -511,7 +485,6 @@ class ObjectsScriptTests(TestCase):
         script = Script(
             name=name,
             regions=a_regions,
-            registered_client=MagicMock(),
         )
 
         get_line_info = script.get_line_info
@@ -538,7 +511,6 @@ class ObjectsScriptTests(TestCase):
         script = Script(
             name=name,
             regions=regions,
-            registered_client=MagicMock(),
         )
 
         self.assertEqual('foo.lua', str(script))
@@ -551,22 +523,18 @@ class ObjectsScriptTests(TestCase):
         script_a = Script(
             name=name,
             regions=regions,
-            registered_client=MagicMock(),
         )
         script_b = Script(
             name=name,
             regions=regions,
-            registered_client=MagicMock(),
         )
         script_c = Script(
             name=name + 'different',
             regions=regions,
-            registered_client=MagicMock(),
         )
         script_d = Script(
             name=name,
             regions=regions + regions,
-            registered_client=MagicMock(),
         )
 
         self.assertTrue(script_a == script_a)
@@ -580,47 +548,8 @@ class ObjectsScriptTests(TestCase):
         self.assertTrue(hash(script_a) == hash(script_d))
         self.assertFalse(script_a == 42)
 
-    def test_script_on_client(self):
-        name = 'foo'
-        regions = [
-            KeyRegion(
-                name='key1',
-                index=1,
-                content='%key key1',
-            ),
-        ]
-        script = Script(
-            name=name,
-            regions=regions,
-            registered_client=MagicMock(),
-        )
-        cloned_script = script.on_client(registered_client=MagicMock())
-
-        self.assertEqual(script, cloned_script)
-        self.assertIsNot(script, cloned_script)
-
-    def test_script_on_client_same_client(self):
-        name = 'foo'
-        regions = [
-            KeyRegion(
-                name='key1',
-                index=1,
-                content='%key key1',
-            ),
-        ]
-        client = MagicMock()
-        script = Script(
-            name=name,
-            regions=regions,
-            registered_client=client,
-        )
-        cloned_script = script.on_client(registered_client=client)
-
-        self.assertEqual(script, cloned_script)
-        self.assertIs(script, cloned_script)
-
     @patch('redis_lua.script.RedisScript')
-    def test_script_call(self, RedisScriptMock):
+    def test_script_run(self, RedisScriptMock):
         name = 'foo'
         regions = [
             KeyRegion(
@@ -668,10 +597,10 @@ class ObjectsScriptTests(TestCase):
         script = Script(
             name=name,
             regions=regions,
-            registered_client=MagicMock(),
         )
-        script.redis_script.return_value = "result"
-        result = script(
+        script._redis_scripts[None] = MagicMock(return_value="result")
+        result = script.run(
+            client=None,
             arg1='ARG',
             arg2=2,
             arg3=False,
@@ -682,8 +611,7 @@ class ObjectsScriptTests(TestCase):
         )
 
         self.assertEqual("result", result)
-        script.redis_script.assert_called_once_with(
-            client=None,
+        script._redis_scripts[None].assert_called_once_with(
             keys=['KEY', 'KEY 2'],
             args=[
                 'ARG',
@@ -706,14 +634,12 @@ class ObjectsScriptTests(TestCase):
         script = Script(
             name=name,
             regions=regions,
-            registered_client=MagicMock(),
         )
-        script.redis_script.return_value = 42
-        result = script()
+        script._redis_scripts[None] = MagicMock(return_value=42)
+        result = script.run(client=None)
 
         self.assertEqual("42", result)
-        script.redis_script.assert_called_once_with(
-            client=None,
+        script._redis_scripts[None].assert_called_once_with(
             keys=[],
             args=[],
         )
@@ -730,14 +656,12 @@ class ObjectsScriptTests(TestCase):
         script = Script(
             name=name,
             regions=regions,
-            registered_client=MagicMock(),
         )
-        script.redis_script.return_value = "42"
-        result = script()
+        script._redis_scripts[None] = MagicMock(return_value="42")
+        result = script.run(client=None)
 
         self.assertEqual(42, result)
-        script.redis_script.assert_called_once_with(
-            client=None,
+        script._redis_scripts[None].assert_called_once_with(
             keys=[],
             args=[],
         )
@@ -754,14 +678,12 @@ class ObjectsScriptTests(TestCase):
         script = Script(
             name=name,
             regions=regions,
-            registered_client=MagicMock(),
         )
-        script.redis_script.return_value = 5
-        result = script()
+        script._redis_scripts[None] = MagicMock(return_value=5)
+        result = script.run(client=None)
 
         self.assertEqual(True, result)
-        script.redis_script.assert_called_once_with(
-            client=None,
+        script._redis_scripts[None].assert_called_once_with(
             keys=[],
             args=[],
         )
@@ -778,15 +700,13 @@ class ObjectsScriptTests(TestCase):
         script = Script(
             name=name,
             regions=regions,
-            registered_client=MagicMock(),
         )
         value = [1, 'a', None, 3.5]
-        script.redis_script.return_value = json.dumps(value)
-        result = script()
+        script._redis_scripts[None] = MagicMock(return_value=json.dumps(value))
+        result = script.run(client=None)
 
         self.assertEqual(value, result)
-        script.redis_script.assert_called_once_with(
-            client=None,
+        script._redis_scripts[None].assert_called_once_with(
             keys=[],
             args=[],
         )
@@ -803,15 +723,13 @@ class ObjectsScriptTests(TestCase):
         script = Script(
             name=name,
             regions=regions,
-            registered_client=MagicMock(),
         )
         value = {'a': 1, 'b': 3.5, 'c': None, 'd': ['a', 2], 'e': 's'}
-        script.redis_script.return_value = json.dumps(value)
-        result = script()
+        script._redis_scripts[None] = MagicMock(return_value=json.dumps(value))
+        result = script.run(client=None)
 
         self.assertEqual(value, result)
-        script.redis_script.assert_called_once_with(
-            client=None,
+        script._redis_scripts[None].assert_called_once_with(
             keys=[],
             args=[],
         )
@@ -834,11 +752,10 @@ class ObjectsScriptTests(TestCase):
         script = Script(
             name=name,
             regions=regions,
-            registered_client=MagicMock(),
         )
 
         with self.assertRaises(TypeError):
-            script(arg1='ARG')
+            script.run(client=None, arg1='ARG')
 
     def test_script_call_missing_arg(self):
         name = 'foo'
@@ -858,11 +775,10 @@ class ObjectsScriptTests(TestCase):
         script = Script(
             name=name,
             regions=regions,
-            registered_client=MagicMock(),
         )
 
         with self.assertRaises(TypeError):
-            script(key1='KEY')
+            script.run(client=None, key1='KEY')
 
     def test_script_call_unknown_key_arg(self):
         name = 'foo'
@@ -882,8 +798,7 @@ class ObjectsScriptTests(TestCase):
         script = Script(
             name=name,
             regions=regions,
-            registered_client=MagicMock(),
         )
 
         with self.assertRaises(TypeError):
-            script(unknown_key='VALUe')
+            script.run(client=None, unknown_key='VALUe')

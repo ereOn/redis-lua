@@ -40,10 +40,7 @@ LUA_SEARCH_PATH = os.path.join(
 
 
 def test_load_all_scripts_no_cache():
-    scripts = load_all_scripts(
-        registered_client=MagicMock(),
-        path=LUA_SEARCH_PATH,
-    )
+    scripts = load_all_scripts(path=LUA_SEARCH_PATH)
 
     assert_equal(
         {
@@ -61,7 +58,6 @@ def test_load_all_scripts_no_cache():
 def test_load_all_scripts_cache():
     cache = {}
     scripts = load_all_scripts(
-        registered_client=MagicMock(),
         path=LUA_SEARCH_PATH,
         cache=cache,
     )
@@ -83,7 +79,6 @@ def test_load_all_scripts_cache():
 def test_load_scripts_no_cache():
     names = ['sum', 'unicode']
     scripts = load_scripts(
-        registered_client=MagicMock(),
         names=names,
         path=LUA_SEARCH_PATH,
     )
@@ -96,13 +91,11 @@ def test_load_scripts_cache_hit():
     names = ['sum', 'foo']
     cache = {
         'foo': Script(
-            registered_client=MagicMock(),
             name='foo',
             regions=[TextRegion(content='')],
         ),
     }
     scripts = load_scripts(
-        registered_client=MagicMock(),
         names=names,
         path=LUA_SEARCH_PATH,
         cache=cache,
@@ -122,7 +115,6 @@ def test_load_scripts_cache_hit():
 def test_load_script_no_cache():
     name = 'sum'
     script = load_script(
-        registered_client=MagicMock(),
         name=name,
         path=LUA_SEARCH_PATH,
     )
@@ -134,7 +126,6 @@ def test_load_script_cache_miss():
     name = 'sum'
     cache = {}
     script = load_script(
-        registered_client=MagicMock(),
         name=name,
         path=LUA_SEARCH_PATH,
         cache=cache,
@@ -150,7 +141,6 @@ def test_load_script_cache_hit():
         name: MagicMock(spec=Script),
     }
     script = load_script(
-        registered_client=MagicMock(),
         name=name,
         path=LUA_SEARCH_PATH,
         cache=cache,
@@ -212,7 +202,6 @@ def test_parse_script_no_cache(parse_mock):
     content = ""
 
     script = parse_script(
-        registered_client=MagicMock(),
         name=name,
         content=content,
     )
@@ -232,7 +221,6 @@ def test_parse_script_with_empty_cache(parse_mock):
     content = ""
     cache = {}
     script = parse_script(
-        registered_client=MagicMock(),
         name=name,
         content=content,
         cache=cache,
@@ -254,7 +242,6 @@ def test_parse_script_with_existing_cache(parse_mock):
     content = ""
     cache = {name: object()}
     script = parse_script(
-        registered_client=MagicMock(),
         name=name,
         content=content,
         cache=cache,
@@ -278,7 +265,6 @@ def test_parse_script_cyclic_dependency(parse_mock):
 
     with assert_raises(CyclicDependencyError) as error:
         parse_script(
-            registered_client=MagicMock(),
             name=name,
             content=content,
             ancestors=ancestors,

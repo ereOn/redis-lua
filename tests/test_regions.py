@@ -26,7 +26,6 @@ class ScriptRegionTests(TestCase):
         script = Script(
             name=name,
             regions=regions,
-            registered_client=MagicMock(),
         )
         script_region = ScriptRegion(
             script=script,
@@ -43,7 +42,6 @@ class ScriptRegionTests(TestCase):
         script = Script(
             name=name,
             regions=regions,
-            registered_client=MagicMock(),
         )
         script_region = ScriptRegion(
             script=script,
@@ -67,7 +65,6 @@ class ScriptRegionTests(TestCase):
         script = Script(
             name=name,
             regions=regions,
-            registered_client=MagicMock(),
         )
         script_region = ScriptRegion(
             script=script,
@@ -90,7 +87,6 @@ class ScriptRegionTests(TestCase):
         script = Script(
             name=name,
             regions=regions,
-            registered_client=MagicMock(),
         )
         script_region = ScriptRegion(
             script=script,
@@ -113,7 +109,6 @@ class ScriptRegionTests(TestCase):
         script = Script(
             name=name,
             regions=regions,
-            registered_client=MagicMock(),
         )
         script_region = ScriptRegion(
             script=script,
@@ -131,7 +126,6 @@ class ScriptRegionTests(TestCase):
         script = Script(
             name=name,
             regions=regions,
-            registered_client=MagicMock(),
         )
         script_region = ScriptRegion(
             script=script,
@@ -588,10 +582,7 @@ class TextRegionTests(TestCase):
 class ScriptParserTests(TestCase):
     def setUp(self):
         self.parser = ScriptParser()
-        self.ScriptClass = partial(
-            Script,
-            registered_client=MagicMock(),
-        )
+        self.ScriptClass = Script
 
     def test_parse_with_empty_script(self):
         name = 'foo'
@@ -691,7 +682,6 @@ class ScriptParserTests(TestCase):
         ]
         content = '\n'.join(contents)
         script = Script(
-            registered_client=MagicMock(),
             name='foo',
             regions=[
                 TextRegion(content='local b = 2;\nlocal c = 3;'),
@@ -742,7 +732,6 @@ class ScriptParserTests(TestCase):
         ]
         content = '\n'.join(contents)
         script = Script(
-            registered_client=MagicMock(),
             name='foo',
             regions=[
                 KeyRegion(
@@ -790,7 +779,6 @@ class ScriptParserTests(TestCase):
         ]
         content = '\n'.join(contents)
         script = Script(
-            registered_client=MagicMock(),
             name='foo',
             regions=[
                 ArgumentRegion(
@@ -850,7 +838,6 @@ class ScriptParserTests(TestCase):
         ]
         content = '\n'.join(contents)
         script = Script(
-            registered_client=MagicMock(),
             name='foo',
             regions=[
                 ReturnRegion(
@@ -892,7 +879,6 @@ class ScriptParserTests(TestCase):
         ]
         content = '\n'.join(contents)
         script = Script(
-            registered_client=MagicMock(),
             name='foo',
             regions=[
                 ArgumentRegion(

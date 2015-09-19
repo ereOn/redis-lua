@@ -31,13 +31,11 @@ class ExceptionsTests(TestCase):
     def test_script_error_as_string(self):
         cache = {}
         parse_script(
-            registered_client=MagicMock(),
             name='foo',
             content='local a = b;',
             cache=cache,
         )
         script = parse_script(
-            registered_client=MagicMock(),
             name='bar',
             content='%include "foo"',
             cache=cache,
@@ -108,7 +106,6 @@ local l = 12;
 """
 
         script = parse_script(
-            registered_client=MagicMock(),
             name=name,
             content=content,
         )
@@ -142,7 +139,6 @@ local l = 12;
         content = ""
 
         script = parse_script(
-            registered_client=MagicMock(),
             name=name,
             content=content,
         )

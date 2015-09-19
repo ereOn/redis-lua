@@ -149,14 +149,12 @@ class Script(object):
 
         return result
 
-    def __init__(self, name, regions, registered_client):
+    def __init__(self, name, regions):
         """
         Create a new script object.
 
         :param name: The name of the script, without its `.lua` extension.
         :param regions: A non-empty list of regions that compose the script.
-        :param registered_client: A Redis instance or pipeline to execute the
-            script on by default.
         """
         if not regions:
             raise ValueError('regions cannot be empty')
@@ -177,10 +175,7 @@ class Script(object):
             )
 
         self.regions = regions
-        self.redis_script = RedisScript(
-            registered_client=registered_client,
-            script=self.render(),
-        )
+        self._redis_scripts = {}
 
     def __repr__(self):
         return '{_class}(name={self.name!r})'.format(
@@ -279,27 +274,6 @@ class Script(object):
             other.regions == self.regions,
         ])
 
-    def on_client(self, registered_client):
-        """
-        Return a copy of the Script instance that runs on the specified client.
-
-        :param registered_client: The Redis instance or pipeline to run the
-            script on.
-        :returns: A copy of the current Script instance on which you can
-        perform a direct call.
-        """
-        # Optimization: if the client is the same as the current one, we don't
-        # recreate an instance to avoid a guaranteed cache miss in redis-py
-        # code.
-        if registered_client == self.redis_script.registered_client:
-            return self
-
-        return self.__class__(
-            name=self.name,
-            regions=self.regions,
-            registered_client=registered_client,
-        )
-
     @classmethod
     def convert_argument_for_call(cls, type_, value):
         if type_ is int:
@@ -329,10 +303,30 @@ class Script(object):
         else:
             return value
 
-    def __call__(self, **kwargs):
+    def get_redis_script(self, client):
+        """
+        Return a `RedisScript` instance associated to the specified client.
+
+        :param client: The Redis client instance to get a `RedisScript`
+        instance for.
+        :returns: A `RedisScript` instance.
+        """
+        redis_script = self._redis_scripts.get(client)
+
+        if redis_script is None:
+            redis_script = RedisScript(
+                registered_client=client,
+                script=self.render(),
+            )
+            self._redis_scripts[client] = redis_script
+
+        return redis_script
+
+    def run(self, client, **kwargs):
         """
         Call the script with its named arguments.
 
+        :param client: The Redis instance to call the script on.
         :returns: The script result.
         """
         sentinel = object()
@@ -384,8 +378,7 @@ class Script(object):
             )
 
         with error_handler(self):
-            result = self.redis_script(
-                client=None,
+            result = self.get_redis_script(client)(
                 keys=keys_params,
                 args=args_params,
             )
