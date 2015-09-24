@@ -599,8 +599,7 @@ class ObjectsScriptTests(TestCase):
             regions=regions,
         )
         script._redis_scripts[None] = MagicMock(return_value="result")
-        result = script.run(
-            client=None,
+        result = script.get_runner(client=None)(
             arg1='ARG',
             arg2=2,
             arg3=False,
@@ -636,7 +635,7 @@ class ObjectsScriptTests(TestCase):
             regions=regions,
         )
         script._redis_scripts[None] = MagicMock(return_value=42)
-        result = script.run(client=None)
+        result = script.get_runner(client=None)()
 
         self.assertEqual("42", result)
         script._redis_scripts[None].assert_called_once_with(
@@ -658,7 +657,7 @@ class ObjectsScriptTests(TestCase):
             regions=regions,
         )
         script._redis_scripts[None] = MagicMock(return_value="42")
-        result = script.run(client=None)
+        result = script.get_runner(client=None)()
 
         self.assertEqual(42, result)
         script._redis_scripts[None].assert_called_once_with(
@@ -680,7 +679,7 @@ class ObjectsScriptTests(TestCase):
             regions=regions,
         )
         script._redis_scripts[None] = MagicMock(return_value=5)
-        result = script.run(client=None)
+        result = script.get_runner(client=None)()
 
         self.assertEqual(True, result)
         script._redis_scripts[None].assert_called_once_with(
@@ -703,7 +702,7 @@ class ObjectsScriptTests(TestCase):
         )
         value = [1, 'a', None, 3.5]
         script._redis_scripts[None] = MagicMock(return_value=json.dumps(value))
-        result = script.run(client=None)
+        result = script.get_runner(client=None)()
 
         self.assertEqual(value, result)
         script._redis_scripts[None].assert_called_once_with(
@@ -726,7 +725,7 @@ class ObjectsScriptTests(TestCase):
         )
         value = {'a': 1, 'b': 3.5, 'c': None, 'd': ['a', 2], 'e': 's'}
         script._redis_scripts[None] = MagicMock(return_value=json.dumps(value))
-        result = script.run(client=None)
+        result = script.get_runner(client=None)()
 
         self.assertEqual(value, result)
         script._redis_scripts[None].assert_called_once_with(
@@ -755,7 +754,7 @@ class ObjectsScriptTests(TestCase):
         )
 
         with self.assertRaises(TypeError):
-            script.run(client=None, arg1='ARG')
+            script.get_runner(client=None)(arg1='ARG')
 
     def test_script_call_missing_arg(self):
         name = 'foo'
@@ -778,7 +777,7 @@ class ObjectsScriptTests(TestCase):
         )
 
         with self.assertRaises(TypeError):
-            script.run(client=None, key1='KEY')
+            script.get_runner(client=None)(key1='KEY')
 
     def test_script_call_unknown_key_arg(self):
         name = 'foo'
@@ -801,4 +800,4 @@ class ObjectsScriptTests(TestCase):
         )
 
         with self.assertRaises(TypeError):
-            script.run(client=None, unknown_key='VALUe')
+            script.get_runner(client=None)(unknown_key='VALUe')

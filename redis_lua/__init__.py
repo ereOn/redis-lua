@@ -227,4 +227,4 @@ def run_code(
     if not kwargs:
         kwargs = {}
 
-    return script.run(client, **kwargs)
+    return script.get_runner(client)(**kwargs)

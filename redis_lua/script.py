@@ -322,67 +322,77 @@ class Script(object):
 
         return redis_script
 
-    def run(self, client, **kwargs):
+    def get_runner(self, client):
         """
-        Call the script with its named arguments.
+        Get a runner for the script on the specified `client`.
 
         :param client: The Redis instance to call the script on.
-        :returns: The script result.
+        :returns: The runner, a callable that takes the script named arguments
+            and returns its result.
         """
-        sentinel = object()
-        keys = {
-            key: index
-            for index, key
-            in enumerate(self.keys)
-        }
-        args = {
-            arg: (index, type_)
-            for index, (arg, type_)
-            in enumerate(self.args)
-        }
-        keys_params = [sentinel] * len(self.keys)
-        args_params = [sentinel] * len(self.args)
+        def runner(**kwargs):
+            """
+            Call the script with its named arguments.
 
-        for name, value in kwargs.items():
-            try:
-                index = keys[name]
-                keys_params[index] = value
-            except KeyError:
+            :param client: The Redis instance to call the script on.
+            :returns: The script result.
+            """
+            sentinel = object()
+            keys = {
+                key: index
+                for index, key
+                in enumerate(self.keys)
+            }
+            args = {
+                arg: (index, type_)
+                for index, (arg, type_)
+                in enumerate(self.args)
+            }
+            keys_params = [sentinel] * len(self.keys)
+            args_params = [sentinel] * len(self.args)
+
+            for name, value in kwargs.items():
                 try:
-                    index, type_ = args[name]
-                    args_params[index] = self.convert_argument_for_call(
-                        type_,
-                        value,
-                    )
+                    index = keys[name]
+                    keys_params[index] = value
                 except KeyError:
-                    raise TypeError("Unknown key/argument %r" % name)
+                    try:
+                        index, type_ = args[name]
+                        args_params[index] = self.convert_argument_for_call(
+                            type_,
+                            value,
+                        )
+                    except KeyError:
+                        raise TypeError("Unknown key/argument %r" % name)
 
-        missing_keys = {
-            key
-            for key, index in keys.items()
-            if keys_params[index] is sentinel
-        }
+            missing_keys = {
+                key
+                for key, index in keys.items()
+                if keys_params[index] is sentinel
+            }
 
-        if missing_keys:
-            raise TypeError("Missing key(s) %r" % list(missing_keys))
+            if missing_keys:
+                raise TypeError("Missing key(s) %r" % list(missing_keys))
 
-        missing_args = {
-            arg
-            for arg, (index, type_) in args.items()
-            if args_params[index] is sentinel
-        }
+            missing_args = {
+                arg
+                for arg, (index, type_) in args.items()
+                if args_params[index] is sentinel
+            }
 
-        if missing_args:
-            raise TypeError(
-                "Missing argument(s) %r" % list(missing_args),
-            )
+            if missing_args:
+                raise TypeError(
+                    "Missing argument(s) %r" % list(missing_args),
+                )
 
-        with error_handler(self):
-            result = self.get_redis_script(client)(
-                keys=keys_params,
-                args=args_params,
-            )
-            return self.convert_return_value_from_call(
-                self.return_type,
-                result,
-            )
+            with error_handler(self):
+                result = self.get_redis_script(client)(
+                    keys=keys_params,
+                    args=args_params,
+                )
+                return self.convert_return_value_from_call(
+                    self.return_type,
+                    result,
+                )
+
+        return runner
