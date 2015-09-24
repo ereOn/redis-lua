@@ -89,7 +89,7 @@ def load_script(name, path, cache=None, ancestors=None):
     :param cache: A cache of scripts to use to fasten loading. If `name` is in
         the `cache`, then the result is the same as calling `cache[name]`.
     :param ancestors: A list of names to consider as ancestors scripts.
-    :return: A `Script` instance.
+    :return: A :py:class:`Script <redis_lua.script.Script>` instance.
     """
     if cache:
         result = cache.get(name)
@@ -132,7 +132,7 @@ def parse_script(
         the cache, it will be overriden.
     :param ancestors: A list of scripts that were called before this one. Used
         to detect infinite recursion.
-    :return: A `Script` instance.
+    :return: A :py:class:`Script <redis_lua.script.Script>` instance.
     """
     if not ancestors:
         ancestors = []

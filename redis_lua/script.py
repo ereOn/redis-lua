@@ -308,7 +308,7 @@ class Script(object):
         Return a `RedisScript` instance associated to the specified client.
 
         :param client: The Redis client instance to get a `RedisScript`
-        instance for.
+            instance for.
         :returns: A `RedisScript` instance.
         """
         redis_script = self._redis_scripts.get(client)

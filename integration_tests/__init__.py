@@ -48,6 +48,8 @@ def skip_if_no_redis(func):
                 ),
             )
 
+        REDIS.flushdb()
+
         return func(*args, redis=REDIS, **kwargs)
 
     return wrapper
@@ -119,3 +121,45 @@ def test_argument_types(redis):
     )
 
     assert_equal(args, result)
+
+
+@skip_if_no_redis
+def test_doc_example(redis):
+    result = run_code(
+        client=redis,
+        content="""
+%arg size integer
+%arg members list
+%return dict
+
+local session_id = redis.call('INCR', 'session:last_id')
+local session_root_key = string.format('session:%s', session_id)
+local session_members_key = session_root_key .. ':members'
+local session_size_key = session_root_key .. ':size'
+
+redis.call('SET', session_size_key, size)
+redis.call('SADD', session_members_key, unpack(members))
+
+return cjson.encode({
+    id=session_id,
+    members=members,
+    size=size,
+})
+""".strip(),
+        kwargs={
+            'members': {'john', 'susan', 'bob'},
+            'size': 5,
+        },
+    )
+
+    # This transformation makes the result more easily comparable.
+    result['members'] = set(result['members'])
+
+    assert_equal(
+        {
+            'id': 1,
+            'members': {'john', 'susan', 'bob'},
+            'size': 5,
+        },
+        result,
+    )
