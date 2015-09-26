@@ -171,7 +171,8 @@ def read_script(name, path, encoding=None):
     :param path: A path to search into for LUA scripts.
     :param encoding: The encoding to use to read the file. If none is
         specified, UTF-8 is assumed.
-    :return: The content of the script. If no such script is found, a
+    :return: The content of the script.
+    :raises: If no such script is found, a
         :py:class:`ScriptNotFoundError
         <redis_lua.exceptions.ScriptNotFoundError>` is thrown.
     """
