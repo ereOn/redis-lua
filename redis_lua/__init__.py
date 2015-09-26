@@ -98,7 +98,7 @@ def load_script(name, path, cache=None, ancestors=None):
             return result
 
     name = name.replace(os.path.sep, '/')
-    content, path = read_script(name=name, path=path)
+    content = read_script(name=name, path=path)
 
     return parse_script(
         name=name,
@@ -171,8 +171,7 @@ def read_script(name, path, encoding=None):
     :param path: A path to search into for LUA scripts.
     :param encoding: The encoding to use to read the file. If none is
         specified, UTF-8 is assumed.
-    :return: The content of the script and the path in which it was found. If
-        no such script is found, a
+    :return: The content of the script. If no such script is found, a
         :py:class:`ScriptNotFoundError
         <redis_lua.exceptions.ScriptNotFoundError>` is thrown.
     """
@@ -189,10 +188,10 @@ def read_script(name, path, encoding=None):
     try:
         if six.PY2:
             with open(filename) as _file:
-                return _file.read().decode(encoding), path
+                return _file.read().decode(encoding)
         else:
             with open(filename, encoding=encoding) as _file:
-                return _file.read(), path
+                return _file.read()
 
     except IOError:
         raise ScriptNotFoundError(name=name, filename=filename)

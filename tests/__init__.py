@@ -153,10 +153,9 @@ def test_read_script():
     with open(os.path.join(LUA_SEARCH_PATH, 'sum.lua')) as _file:
         reference_content = _file.read()
 
-    content, path = read_script(name='sum', path=LUA_SEARCH_PATH)
+    content = read_script(name='sum', path=LUA_SEARCH_PATH)
 
     assert_equal(reference_content, content)
-    assert_equal(LUA_SEARCH_PATH, path)
 
 
 def test_read_script_unicode():
@@ -172,14 +171,13 @@ def test_read_script_unicode():
         ) as _file:
             reference_content = _file.read()
 
-    content, path = read_script(
+    content = read_script(
         name='unicode',
         path=LUA_SEARCH_PATH,
         encoding='utf-8',
     )
 
     assert_equal(reference_content, content)
-    assert_equal(LUA_SEARCH_PATH, path)
     assert_in(u'éléphant', content)
 
 
