@@ -1,6 +1,7 @@
 [![Build Status](https://travis-ci.org/ereOn/redis-lua.svg?branch=master)](https://travis-ci.org/ereOn/redis-lua)
 [![Coverage Status](https://coveralls.io/repos/ereOn/redis-lua/badge.svg?branch=master&service=github)](https://coveralls.io/github/ereOn/redis-lua?branch=master)
 [![Documentation Status](https://readthedocs.org/projects/redis-lua/badge/?version=latest)](http://redis-lua.readthedocs.org/en/latest/?badge=latest)
+[![PyPI](https://img.shields.io/pypi/pyversions/redis-lua.svg)](https://pypi.python.org/pypi/redis-lua/1.0.0)
 [![GitHub tag](https://img.shields.io/github/tag/ereOn/redis-lua.svg)](https://github.com/ereOn/redis-lua)
 [![PyPi version](https://img.shields.io/pypi/v/redis-lua.svg)](https://pypi.python.org/pypi/redis-lua/1.0.0)
 [![PyPi downloads](https://img.shields.io/pypi/dm/redis-lua.svg)](https://pypi.python.org/pypi/redis-lua/1.0.0)
