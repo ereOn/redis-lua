@@ -87,7 +87,7 @@ class Script(object):
 
         return result
 
-    LineInfo = namedtuple(
+    _LineInfo = namedtuple(
         '_LineInfo',
         [
             'first_real_line',
@@ -117,7 +117,7 @@ class Script(object):
 
         def add_region(real_line, line, region):
             result.append(
-                cls.LineInfo(
+                cls._LineInfo(
                     real_line,
                     real_line,
                     region.real_line_count,
@@ -241,7 +241,7 @@ class Script(object):
         """
         for info in self.line_infos:
             if line >= info.line and line < info.line + info.line_count:
-                return self.LineInfo(
+                return self._LineInfo(
                     first_real_line=info.first_real_line,
                     real_line=info.real_line + min(
                         line - info.line,
