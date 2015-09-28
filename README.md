@@ -14,11 +14,11 @@ A code sample is worth a thousand words:
 
     from redis_lua import load_script
 
-    # Loads the 'create_session.lua' in the 'lua' directory.
-    script = load_script(name='create_session', path='lua/')
+    # Loads the 'create_foo.lua' in the 'lua' directory.
+    script = load_script(name='create_foo', path='lua/')
 
     # Run the script with the specified arguments.
-    session = script.get_runner(client=redis_client)(
+    foo = script.get_runner(client=redis_client)(
         members={'john', 'susan', 'bob'},
         size=5,
     )

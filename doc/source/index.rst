@@ -16,11 +16,11 @@ A code sample is worth a thousand words:
 
    from redis_lua import load_script
 
-   # Loads the 'create_session.lua' in the 'lua' directory.
-   script = load_script(name='create_session', path='lua/')
+   # Loads the 'create_foo.lua' in the 'lua' directory.
+   script = load_script(name='create_foo', path='lua/')
 
    # Run the script with the specified arguments.
-   session = script.get_runner(client=redis_client)(
+   foo = script.get_runner(client=redis_client)(
        members={'john', 'susan', 'bob'},
        size=5,
    )
@@ -42,11 +42,11 @@ The next lines are:
 
 .. code-block:: python
 
-   # Loads the 'create_session.lua' in the 'lua' directory.
-   script = load_script(name='create_session', path='lua/')
+   # Loads the 'create_foo.lua' in the 'lua' directory.
+   script = load_script(name='create_foo', path='lua/')
 
 
-These lines looks for a file named `create_session.lua` in the `lua` directory,
+These lines looks for a file named `create_foo.lua` in the `lua` directory,
 relative to the current working directory. This example actually considers
 that using the current directory is correct. In a production code, you likely
 want to make sure to use a more reliable or absolute path.
@@ -70,7 +70,7 @@ Finally we have:
 .. code-block:: python
 
    # Run the script with the specified arguments.
-   session = script.get_runner(client=redis_client)(
+   foo = script.get_runner(client=redis_client)(
        members={'john', 'susan', 'bob'},
        size=5,
    )
@@ -91,7 +91,7 @@ What's the magic at play here ?
 You may wonder how it is possible for `redis_lua` to possibly know how to
 translate the `members` and `size` arguments to something meaningful in LUA.
 
-Let's take a look at the `create_session.lua` file:
+Let's take a look at the `create_foo.lua` file:
 
 .. code-block:: lua
 
@@ -99,16 +99,16 @@ Let's take a look at the `create_session.lua` file:
    %arg members list
    %return dict
    
-   local session_id = redis.call('INCR', 'session:last_id')
-   local session_root_key = string.format('session:%s', session_id)
-   local session_members_key = session_root_key .. ':members'
-   local session_size_key = session_root_key .. ':size'
+   local foo = redis.call('INCR', 'foo:last_id')
+   local foo_root_key = string.format('foo:%s', foo_id)
+   local foo_members_key = foo_root_key .. ':members'
+   local foo_size_key = foo_root_key .. ':size'
    
-   redis.call('SET', session_size_key, size)
-   redis.call('SADD', session_members_key, unpack(members))
+   redis.call('SET', foo_size_key, size)
+   redis.call('SADD', foo_members_key, unpack(members))
    
    return cjson.encode({
-       id=session_id,
+       id=foo_id,
        members=members,
        size=size,
    })
@@ -153,10 +153,10 @@ Let's introduce a problem in our script and look at the resulting exception:
 
 .. code-block:: none
 
-   redis_lua.exceptions.ScriptError: Script attempted to access unexisting global variable 'session_size_key'
+   redis_lua.exceptions.ScriptError: Script attempted to access unexisting global variable 'foo_size_key'
    LUA Traceback (most recent script last):
      Script "<user-code>", line 8
-       local session_size_key = session_size_key .. ':size'
+       local foo_size_key = foo_size_key .. ':size'
 
 The LUA scripting error was detected as usual by `redispy` but `redis_lua` was
 able to enhance it with more contextual information: the script in which the

@@ -132,16 +132,16 @@ def test_doc_example(redis):
 %arg members list
 %return dict
 
-local session_id = redis.call('INCR', 'session:last_id')
-local session_root_key = string.format('session:%s', session_id)
-local session_members_key = session_root_key .. ':members'
-local session_size_key = session_root_key .. ':size'
+local foo_id = redis.call('INCR', 'foo:last_id')
+local foo_root_key = string.format('foo:%s', foo_id)
+local foo_members_key = foo_root_key .. ':members'
+local foo_size_key = foo_root_key .. ':size'
 
-redis.call('SET', session_size_key, size)
-redis.call('SADD', session_members_key, unpack(members))
+redis.call('SET', foo_size_key, size)
+redis.call('SADD', foo_members_key, unpack(members))
 
 return cjson.encode({
-    id=session_id,
+    id=foo_id,
     members=members,
     size=size,
 })

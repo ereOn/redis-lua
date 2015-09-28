@@ -45,7 +45,7 @@ Calling a script is easy:
 
 .. code-block:: python
 
-   result = scripts['create_ticket'].get_runner(client=client)(
+   result = scripts['foo'].get_runner(client=client)(
        my_key='my_key',
        my_arg='my_arg',
    )
@@ -181,12 +181,12 @@ logic in `redis_lua` handles ``%include`` statements, like so:
 
 .. code-block:: lua
 
-   -- The "ticket.lua" script in the same folder defines the "create_ticket()"
+   -- The "foo.lua" script in the same folder defines the "create_foo()"
    -- function.
 
-   %include "ticket"
+   %include "foo"
 
-   local t = create_ticket(1, "a");
+   local t = create_foo(1, "a");
 
 `%include` takes a single argument, which is the complete name (with any
 relative path component) of the LUA script to include, without its ``.lua``
