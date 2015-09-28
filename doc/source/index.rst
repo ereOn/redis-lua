@@ -99,7 +99,7 @@ Let's take a look at the `create_foo.lua` file:
    %arg members list
    %return dict
    
-   local foo = redis.call('INCR', 'foo:last_id')
+   local foo_id = redis.call('INCR', 'foo:last_id')
    local foo_root_key = string.format('foo:%s', foo_id)
    local foo_members_key = foo_root_key .. ':members'
    local foo_size_key = foo_root_key .. ':size'
