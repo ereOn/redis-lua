@@ -8,7 +8,13 @@ from nose.tools import (
 from nose.plugins.skip import SkipTest
 
 from redis import Redis
-from redis.exceptions import TimeoutError
+
+try:
+    from redis.exceptions import TimeoutError
+except ImportError:
+    # pyredis is too old: let's fake TimeoutError
+    TimeoutError = Exception
+
 from redis_lua import run_code
 from redis_lua.exceptions import ScriptError
 
@@ -20,13 +26,20 @@ REDIS_PASSWORD = os.environ.get('REDIS_PASSWORD', '')
 HAS_REDIS = REDIS_HOST is not None
 
 if HAS_REDIS:
+    kwargs = {}
+
+    if TimeoutError is not Exception:
+        kwargs.update({
+            'socket_connect_timeout': 1,
+        })
+
     REDIS = Redis(
         host=REDIS_HOST,
         port=REDIS_PORT,
         db=REDIS_DB,
         password=REDIS_PASSWORD,
-        socket_connect_timeout=1,
         socket_timeout=1,
+        **kwargs
     )
 
     try:
