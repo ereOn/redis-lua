@@ -15,7 +15,10 @@ except ImportError:
     # pyredis is too old: let's fake TimeoutError
     TimeoutError = Exception
 
-from redis_lua import run_code
+from redis_lua import (
+    run_code,
+    parse_script,
+)
 from redis_lua.exceptions import ScriptError
 
 
@@ -173,6 +176,59 @@ return cjson.encode({
             'id': 1,
             'members': {'john', 'susan', 'bob'},
             'size': 5,
+        },
+        result,
+    )
+
+
+@skip_if_no_redis
+def test_multiple_inclusion(redis):
+    cache = {}
+    script_a = parse_script(
+        name='a',
+        content="""
+redis.call('INCR', key_a)
+""".strip(),
+        cache=cache,
+    )
+    script_b = parse_script(
+        name='b',
+        content="""
+%pragma once
+redis.call('INCR', key_b)
+""".strip(),
+        cache=cache,
+    )
+    result = run_code(
+        client=redis,
+        content="""
+%key key_a
+%key key_b
+%include "a"
+%include "b"
+%include "a"
+%include "b"
+%return dict
+
+local a = tonumber(redis.call('GET', key_a))
+local b = tonumber(redis.call('GET', key_b))
+
+return cjson.encode({
+    a=a,
+    b=b,
+})
+""".strip(),
+        kwargs={
+            'key_a': 'key_a',
+            'key_b': 'key_b',
+        },
+        cache=cache,
+    )
+
+    assert_equal(
+        {
+            'a': 2,
+            'b': 1,
         },
         result,
     )
