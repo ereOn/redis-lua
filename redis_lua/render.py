@@ -55,5 +55,11 @@ class RenderContext(object):
     def render_return(self, type_):
         return '-- Expected return type is: %r' % type_
 
+    def render_pragma(self, value):
+        if value == 'once':
+            return '-- File can only be included once.'
+
+        raise AssertionError("Can't render unknown pragma type: %r" % value)
+
     def render_text(self, text):
         return text

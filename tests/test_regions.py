@@ -12,6 +12,7 @@ from redis_lua.regions import (
     KeyRegion,
     ArgumentRegion,
     ReturnRegion,
+    PragmaRegion,
     ScriptParser,
 )
 
@@ -534,6 +535,79 @@ class ReturnRegionTests(TestCase):
         self.assertFalse(return_region_a == 42)
 
 
+class PragmaRegionTests(TestCase):
+
+    def setUp(self):
+        self.render_context = MagicMock()
+
+    def test_pragma_region_instanciation(self):
+        pragma_region = PragmaRegion(
+            value='once',
+            content='%pragma once',
+        )
+
+        self.assertEqual('once', pragma_region.value)
+
+    def test_pragma_region_invalid_instanciation(self):
+        with self.assertRaises(ValueError):
+            PragmaRegion(
+                value='unknown',
+                content='%pragma unknown',
+            )
+
+    def test_pragma_region_representation(self):
+        pragma_region = PragmaRegion(
+            value='once',
+            content='%pragma once',
+        )
+
+        self.assertEqual(
+            (
+                "PragmaRegion(line_count=1)"
+            ),
+            repr(pragma_region),
+        )
+
+    def test_pragma_region_line_count(self):
+        pragma_region = PragmaRegion(
+            value='once',
+            content='%pragma once',
+        )
+
+        self.assertEqual(1, pragma_region.line_count)
+        self.assertEqual(1, pragma_region.real_line_count)
+
+    def test_pragma_region_as_string(self):
+        pragma_region = PragmaRegion(
+            value='once',
+            content='%pragma once',
+        )
+        render_context = MagicMock()
+        result = pragma_region.render(context=render_context)
+
+        render_context.render_pragma.assert_called_once_with(value='once')
+        self.assertEqual(render_context.render_pragma.return_value, result)
+
+    def test_pragma_region_equality(self):
+        pragma_region_a = PragmaRegion(
+            value='once',
+            content='%pragma once',
+        )
+        pragma_region_b = PragmaRegion(
+            value='once',
+            content='%pragma once',
+        )
+        pragma_region_c = PragmaRegion(
+            value='once',
+            content='%pragma  once',
+        )
+
+        self.assertIsNot(pragma_region_a, pragma_region_b)
+        self.assertTrue(pragma_region_a == pragma_region_b)
+        self.assertFalse(pragma_region_a == pragma_region_c)
+        self.assertFalse(pragma_region_a == 42)
+
+
 class TextRegionTests(TestCase):
 
     def test_text_region_instanciation(self):
@@ -868,6 +942,43 @@ class ScriptParserTests(TestCase):
             regions,
         )
 
+    def test_extract_regions_pragma(self):
+        contents = [
+            '%include "foo"',
+            '%pragma once',
+        ]
+        content = '\n'.join(contents)
+        script = Script(
+            name='foo',
+            regions=[
+                PragmaRegion(
+                    value='once',
+                    content='%pragma once',
+                ),
+            ],
+        )
+        get_script_by_name = MagicMock(return_value=script)
+        regions = self.parser.parse_regions(
+            content=content,
+            current_path=".",
+            get_script_by_name=get_script_by_name,
+        )
+
+        self.maxDiff = None
+        self.assertEqual(
+            [
+                ScriptRegion(
+                    script=script,
+                    content='%include "foo"',
+                ),
+                PragmaRegion(
+                    value='once',
+                    content=contents[1],
+                ),
+            ],
+            regions,
+        )
+
     def test_extract_regions_text_last(self):
         contents = [
             '%arg arg1',
@@ -961,6 +1072,27 @@ class ScriptParserTests(TestCase):
         self.assertEqual(
             (
                 "Unknown type 'unknowntype' in '%return unknowntype' when "
+                "parsing line 1"
+            ),
+            str(error.exception),
+        )
+
+    def test_extract_regions_pragma_invalid(self):
+        contents = [
+            '%pragma unknown',
+        ]
+        content = '\n'.join(contents)
+
+        with self.assertRaises(ValueError) as error:
+            self.parser.parse_regions(
+                content=content,
+                current_path=".",
+                get_script_by_name=None,
+            )
+
+        self.assertEqual(
+            (
+                "Unknown value 'unknown' in '%pragma unknown' when "
                 "parsing line 1"
             ),
             str(error.exception),

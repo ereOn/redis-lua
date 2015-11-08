@@ -13,6 +13,7 @@ from redis_lua.regions import (
     KeyRegion,
     ArgumentRegion,
     ReturnRegion,
+    PragmaRegion,
 )
 
 
@@ -31,6 +32,7 @@ class ObjectsScriptTests(TestCase):
         self.assertEqual(name, script.name)
         self.assertEqual(regions, script.regions)
         self.assertIsNone(script.return_type)
+        self.assertTrue(script.multiple_inclusion)
 
     def test_script_instanciation_no_regions(self):
         name = 'foo'
@@ -213,6 +215,25 @@ class ObjectsScriptTests(TestCase):
                 name=name,
                 regions=regions,
             )
+
+    def test_script_instanciation_with_pragma_once(self):
+        name = 'foo'
+        regions = [
+            PragmaRegion(
+                value='once',
+                content='%pragma once',
+            ),
+            ReturnRegion(
+                type_='integer',
+                content='%return integer',
+            ),
+        ]
+        script = Script(
+            name=name,
+            regions=regions,
+        )
+
+        self.assertFalse(script.multiple_inclusion)
 
     def test_script_representation(self):
         name = 'foo'

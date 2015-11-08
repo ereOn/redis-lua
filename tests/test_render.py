@@ -104,6 +104,19 @@ class RenderContextTests(TestCase):
 
         self.assertEqual('-- Expected return type is: %r' % str, result)
 
+    def test_render_pragma(self):
+        result = self.render_context.render_pragma(
+            value='once',
+        )
+
+        self.assertEqual('-- File can only be included once.', result)
+
+    def test_render_pragma_unknown(self):
+        with self.assertRaises(AssertionError):
+            self.render_context.render_pragma(
+                value='unknown',
+            )
+
     def test_render_text(self):
         result = self.render_context.render_text(
             text="foo foo foo",

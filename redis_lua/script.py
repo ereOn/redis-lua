@@ -13,6 +13,7 @@ from .regions import (
     ArgumentRegion,
     KeyRegion,
     ReturnRegion,
+    PragmaRegion,
     ScriptRegion,
 )
 from .render import RenderContext
@@ -84,6 +85,18 @@ class Script(object):
                     raise ValueError("There can be only one return statement.")
 
                 result = region.type_
+
+        return result
+
+    @classmethod
+    def get_multiple_inclusion_from_regions(cls, regions):
+        result = True
+
+        for region in regions:
+            if isinstance(region, PragmaRegion):
+                # There is only one type of pragmas as of now, so we don't need
+                # to test for the exact value.
+                result = False
 
         return result
 
@@ -163,6 +176,9 @@ class Script(object):
         self.keys = self.get_keys_from_regions(regions)
         self.args = self.get_args_from_regions(regions)
         self.return_type = self.get_return_from_regions(regions)
+        self.multiple_inclusion = self.get_multiple_inclusion_from_regions(
+            regions,
+        )
         self.line_infos = self.get_line_info_for_regions(regions, {self})
 
         duplicates = set(self.keys) & {arg for arg, _ in self.args}

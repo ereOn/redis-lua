@@ -187,6 +187,39 @@ class ReturnRegion(object):
         ])
 
 
+class PragmaRegion(object):
+    VALID_VALUES = {
+        'once',
+    }
+
+    def __init__(self, value, content):
+        if value not in self.VALID_VALUES:
+            raise ValueError("Invalid value %r for pragma" % value)
+
+        self.value = value
+        self.line_count = 1
+        self.real_line_count = 1
+        self.content = content
+
+    def __repr__(self):
+        return '{_class}(line_count={self.line_count})'.format(
+            _class=self.__class__.__name__,
+            self=self,
+        )
+
+    def render(self, context):
+        return context.render_pragma(value=self.value)
+
+    def __eq__(self, other):
+        if not isinstance(other, PragmaRegion):
+            return NotImplemented
+
+        return all([
+            other.value == self.value,
+            other.content == self.content,
+        ])
+
+
 class TextRegion(object):
     def __init__(self, content):
         self.content = content
@@ -277,6 +310,15 @@ class ScriptParser(object):
             )
             self.regions.append(region)
 
+        def add_pragma_region(self, value, content):
+            self.flush()
+
+            region = PragmaRegion(
+                value=value,
+                content=content,
+            )
+            self.regions.append(region)
+
         def normalize(self):
             self.flush()
 
@@ -341,6 +383,9 @@ class ScriptParser(object):
                 continue
 
             elif self._parse_return(context, real_line, statement):
+                continue
+
+            elif self._parse_pragma(context, real_line, statement):
                 continue
 
             else:
@@ -452,6 +497,36 @@ class ScriptParser(object):
                 raise ValueError(
                     "Unknown type %r in %r when parsing line %d" % (
                         type_,
+                        statement,
+                        real_line,
+                    ),
+                )
+
+            return True
+
+    def _parse_pragma(
+        self,
+        context,
+        real_line,
+        statement,
+    ):
+        match = re.match(
+            r'^\s*%pragma\s+(?P<value>[\w\d_]+)\s*$',
+            statement,
+        )
+
+        if match:
+            value = match.group('value')
+
+            try:
+                context.add_pragma_region(
+                    value=value,
+                    content=statement,
+                )
+            except ValueError:
+                raise ValueError(
+                    "Unknown value %r in %r when parsing line %d" % (
+                        value,
                         statement,
                         real_line,
                     ),
