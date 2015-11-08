@@ -205,3 +205,24 @@ subfolder of the ``lua`` directory, you can include ``bar/b.lua`` in
    For the inclusion system to work properly, all scripts must either been have
    loaded by the same call, or by different calls but using the same script
    cache.
+
+Multiple inclusion
+++++++++++++++++++
+
+By default, `redis-lua` allows multiple inclusions of the same file several
+times. This can cause issues when including different scripts that include the
+same subscripts which conflict with each other.
+
+To prevent side-effects caused by multiple inclusion of the same scripts, you
+can use the following statement, anywhere in the script:
+
+.. code-block:: lua
+
+   %pragma once
+
+.. note::
+
+   This behavior is new since version 2.0.0.
+
+   In previous versions, the default behavior was as-if `%pragma once` was
+   defined implicitely in each script.
