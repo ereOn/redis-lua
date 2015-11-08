@@ -314,6 +314,46 @@ class ObjectsScriptTests(TestCase):
             ],
         )
 
+        self.assertEqual('a\nb\na\nb\na', script.render())
+
+    def test_script_render_with_duplicate_includes_pragma_once(self):
+        subsubscript = Script(
+            name='a',
+            regions=[
+                TextRegion(content='a'),
+            ],
+        )
+        subsubscript.multiple_inclusion = False
+        subscript = Script(
+            name='b',
+            regions=[
+                TextRegion(content='b'),
+                ScriptRegion(
+                    script=subsubscript,
+                    content='%include "a"',
+                ),
+            ],
+        )
+        subscript.multiple_inclusion = False
+        script = Script(
+            name='c',
+            regions=[
+                ScriptRegion(
+                    script=subsubscript,
+                    content='%include "a"',
+                ),
+                ScriptRegion(
+                    script=subscript,
+                    content='%include "b"',
+                ),
+                ScriptRegion(
+                    script=subscript,
+                    content='%include "b"',
+                ),
+            ],
+        )
+        script.multiple_inclusion = False
+
         self.assertEqual('a\nb', script.render())
 
     def test_script_line_count(self):

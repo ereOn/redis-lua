@@ -12,7 +12,8 @@ class RenderContext(object):
         if script in self.rendered_scripts:
             return None
         else:
-            self.rendered_scripts.add(script)
+            if not script.multiple_inclusion:
+                self.rendered_scripts.add(script)
 
         return '\n'.join(
             line

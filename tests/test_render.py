@@ -42,6 +42,26 @@ class RenderContextTests(TestCase):
         self.render_context.render_script(script=script)
         result = self.render_context.render_script(script=script)
 
+        self.assertEqual('a\na', result)
+
+    def test_render_script_already_rendered_pragma_once(self):
+        script = MagicMock()
+        script.multiple_inclusion = False
+        ok_region = MagicMock()
+        ok_region.render.return_value = 'a'
+        ko_region = MagicMock()
+        ko_region.render.return_value = None
+
+        script.regions = [
+            ok_region,
+            ko_region,
+            ok_region,
+        ]
+
+        # Render the script a first time.
+        self.render_context.render_script(script=script)
+        result = self.render_context.render_script(script=script)
+
         self.assertIsNone(result)
 
     def test_render_key(self):
