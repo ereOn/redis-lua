@@ -65,7 +65,7 @@ class KeyRegion(object):
         )
 
     def render(self, context):
-        return context.render_key(name=self.name, index=self.index)
+        return context.render_key(name=self.name)
 
     def __eq__(self, other):
         if not isinstance(other, KeyRegion):
@@ -123,7 +123,6 @@ class ArgumentRegion(object):
         return context.render_arg(
             name=self.name,
             type_=self.type_,
-            index=self.index,
         )
 
     def __eq__(self, other):

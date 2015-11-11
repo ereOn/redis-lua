@@ -7,6 +7,8 @@ class RenderContext(object):
 
     def __init__(self):
         self.rendered_scripts = set()
+        self.last_key_index = 0
+        self.last_arg_index = 0
 
     def render_script(self, script):
         if script in self.rendered_scripts:
@@ -24,33 +26,40 @@ class RenderContext(object):
             if line is not None
         )
 
-    def render_key(self, name, index):
-        return "local {name} = KEYS[{index}]".format(name=name, index=index)
+    def render_key(self, name):
+        self.last_key_index += 1
 
-    def render_arg(self, name, type_, index):
+        return "local {name} = KEYS[{index}]".format(
+            name=name,
+            index=self.last_key_index,
+        )
+
+    def render_arg(self, name, type_):
+        self.last_arg_index += 1
+
         if type_ is int:
             return "local {name} = tonumber(ARGV[{index}])".format(
                 name=name,
-                index=index,
+                index=self.last_arg_index,
             )
         elif type_ is bool:
             return (
                 "local {name} = tonumber(ARGV[{index}]) ~= 0"
             ).format(
                 name=name,
-                index=index,
+                index=self.last_arg_index,
             )
         elif type_ in {list, dict}:
             return (
                 "local {name} = cjson.decode(ARGV[{index}])"
             ).format(
                 name=name,
-                index=index,
+                index=self.last_arg_index,
             )
         else:
             return "local {name} = ARGV[{index}]".format(
                 name=name,
-                index=index,
+                index=self.last_arg_index,
             )
 
     def render_return(self, type_):

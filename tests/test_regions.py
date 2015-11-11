@@ -1,4 +1,3 @@
-from functools import partial
 from mock import (
     MagicMock,
     call,
@@ -218,10 +217,7 @@ class KeyRegionTests(TestCase):
         render_context = MagicMock()
         result = key_region.render(context=render_context)
 
-        render_context.render_key.assert_called_once_with(
-            name=name,
-            index=index,
-        )
+        render_context.render_key.assert_called_once_with(name=name)
         self.assertEqual(render_context.render_key.return_value, result)
 
     def test_key_region_equality(self):
@@ -329,7 +325,6 @@ class ArgumentRegionTests(TestCase):
         render_context.render_arg.assert_called_once_with(
             name=name,
             type_=str,
-            index=index,
         )
         self.assertEqual(render_context.render_arg.return_value, result)
 
@@ -348,7 +343,6 @@ class ArgumentRegionTests(TestCase):
         render_context.render_arg.assert_called_once_with(
             name=name,
             type_=int,
-            index=index,
         )
         self.assertEqual(render_context.render_arg.return_value, result)
 
@@ -367,7 +361,6 @@ class ArgumentRegionTests(TestCase):
         render_context.render_arg.assert_called_once_with(
             name=name,
             type_=bool,
-            index=index,
         )
         self.assertEqual(render_context.render_arg.return_value, result)
 

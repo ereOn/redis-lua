@@ -184,14 +184,14 @@ return cjson.encode({
 @skip_if_no_redis
 def test_multiple_inclusion(redis):
     cache = {}
-    script_a = parse_script(
+    parse_script(
         name='a',
         content="""
 redis.call('INCR', key_a)
 """.strip(),
         cache=cache,
     )
-    script_b = parse_script(
+    parse_script(
         name='b',
         content="""
 %pragma once

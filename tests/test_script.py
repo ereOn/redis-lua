@@ -279,6 +279,156 @@ class ObjectsScriptTests(TestCase):
 
         self.assertEqual('a\nb\nc', script.render())
 
+    def test_script_render_with_duplicate_includes_nested_keys(self):
+        script_a = Script(
+            name='a',
+            regions=[
+                KeyRegion(
+                    name='key1',
+                    index=1,
+                    content='%key key1',
+                ),
+            ],
+        )
+        script_b = Script(
+            name='b',
+            regions=[
+                KeyRegion(
+                    name='key2',
+                    index=1,
+                    content='%key key2',
+                ),
+            ],
+        )
+        script_c = Script(
+            name='c',
+            regions=[
+                KeyRegion(
+                    name='key3',
+                    index=1,
+                    content='%key key3',
+                ),
+            ],
+        )
+        script_d = Script(
+            name='d',
+            regions=[
+                ScriptRegion(
+                    script=script_c,
+                    content='%include "c"',
+                ),
+                KeyRegion(
+                    name='key4',
+                    index=2,
+                    content='%key key4',
+                ),
+            ],
+        )
+        script = Script(
+            name='abcd',
+            regions=[
+                ScriptRegion(
+                    script=script_a,
+                    content='%include "a"',
+                ),
+                ScriptRegion(
+                    script=script_b,
+                    content='%include "b"',
+                ),
+                ScriptRegion(
+                    script=script_d,
+                    content='%include "d"',
+                ),
+            ],
+        )
+
+        self.assertEqual(
+            [
+                'local key1 = KEYS[1]',
+                'local key2 = KEYS[2]',
+                'local key3 = KEYS[3]',
+                'local key4 = KEYS[4]',
+            ],
+            script.render().split('\n'),
+        )
+
+    def test_script_render_with_duplicate_includes_nested_args(self):
+        script_a = Script(
+            name='a',
+            regions=[
+                ArgumentRegion(
+                    name='arg1',
+                    type_='string',
+                    index=1,
+                    content='%arg arg1',
+                ),
+            ],
+        )
+        script_b = Script(
+            name='b',
+            regions=[
+                ArgumentRegion(
+                    name='arg2',
+                    type_='string',
+                    index=1,
+                    content='%arg arg2',
+                ),
+            ],
+        )
+        script_c = Script(
+            name='c',
+            regions=[
+                ArgumentRegion(
+                    name='arg3',
+                    type_='string',
+                    index=1,
+                    content='%arg arg3',
+                ),
+            ],
+        )
+        script_d = Script(
+            name='d',
+            regions=[
+                ScriptRegion(
+                    script=script_c,
+                    content='%include "c"',
+                ),
+                ArgumentRegion(
+                    name='arg4',
+                    type_='string',
+                    index=2,
+                    content='%arg arg4',
+                ),
+            ],
+        )
+        script = Script(
+            name='abcd',
+            regions=[
+                ScriptRegion(
+                    script=script_a,
+                    content='%include "a"',
+                ),
+                ScriptRegion(
+                    script=script_b,
+                    content='%include "b"',
+                ),
+                ScriptRegion(
+                    script=script_d,
+                    content='%include "d"',
+                ),
+            ],
+        )
+
+        self.assertEqual(
+            [
+                'local arg1 = ARGV[1]',
+                'local arg2 = ARGV[2]',
+                'local arg3 = ARGV[3]',
+                'local arg4 = ARGV[4]',
+            ],
+            script.render().split('\n'),
+        )
+
     def test_script_render_with_duplicate_includes(self):
         subsubscript = Script(
             name='a',
