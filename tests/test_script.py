@@ -760,7 +760,7 @@ class ObjectsScriptTests(TestCase):
         self.assertFalse(script_a == 42)
 
     @patch('redis_lua.script.RedisScript')
-    def test_script_run(self, RedisScriptMock):
+    def test_script_run(self, _):
         name = 'foo'
         regions = [
             KeyRegion(
@@ -833,7 +833,7 @@ class ObjectsScriptTests(TestCase):
         )
 
     @patch('redis_lua.script.RedisScript')
-    def test_script_call_return_as_string(self, RedisScriptMock):
+    def test_script_call_return_as_string(self, _):
         name = 'foo'
         regions = [
             ReturnRegion(
@@ -855,7 +855,7 @@ class ObjectsScriptTests(TestCase):
         )
 
     @patch('redis_lua.script.RedisScript')
-    def test_script_call_return_as_integer(self, RedisScriptMock):
+    def test_script_call_return_as_integer(self, _):
         name = 'foo'
         regions = [
             ReturnRegion(
@@ -877,7 +877,7 @@ class ObjectsScriptTests(TestCase):
         )
 
     @patch('redis_lua.script.RedisScript')
-    def test_script_call_return_as_boolean(self, RedisScriptMock):
+    def test_script_call_return_as_boolean(self, _):
         name = 'foo'
         regions = [
             ReturnRegion(
@@ -899,7 +899,7 @@ class ObjectsScriptTests(TestCase):
         )
 
     @patch('redis_lua.script.RedisScript')
-    def test_script_call_return_as_list(self, RedisScriptMock):
+    def test_script_call_return_as_list(self, _):
         name = 'foo'
         regions = [
             ReturnRegion(
@@ -922,7 +922,7 @@ class ObjectsScriptTests(TestCase):
         )
 
     @patch('redis_lua.script.RedisScript')
-    def test_script_call_return_as_dict(self, RedisScriptMock):
+    def test_script_call_return_as_dict(self, _):
         name = 'foo'
         regions = [
             ReturnRegion(

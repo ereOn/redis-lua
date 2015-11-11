@@ -1,4 +1,3 @@
-from mock import MagicMock
 from unittest import TestCase
 
 from redis.exceptions import ResponseError
