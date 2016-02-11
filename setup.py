@@ -20,7 +20,7 @@ redis-lua provides helpers that deal with redis-py to ease LUA scripting.
         'tests',
     ]),
     install_requires=[
-        'redis>=2.8.0',
+        'redis>=2.10.3',
         'six==1.9.0',
     ],
     test_suite='tests',

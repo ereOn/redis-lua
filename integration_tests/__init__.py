@@ -91,6 +91,29 @@ def test_sum(redis):
 
 
 @skip_if_no_redis
+def test_sum_pipeline(redis):
+    with redis.pipeline() as pipeline:
+        result = run_code(
+            client=pipeline,
+            content="""
+            %arg a integer
+            %arg b integer
+            %return string
+
+            return a + b;
+            """,
+            kwargs={
+                'a': 3,
+                'b': 4,
+            },
+        )
+        values = pipeline.execute()
+
+    assert_equal([7], values)
+    assert_equal("7", result(values[0]))
+
+
+@skip_if_no_redis
 def test_script_error(redis):
     with assert_raises(ScriptError) as error:
         run_code(
