@@ -6,6 +6,8 @@ from mock import (
 )
 from unittest import TestCase
 
+from redis.client import BasePipeline
+
 from redis_lua.script import Script
 from redis_lua.regions import (
     TextRegion,
@@ -830,6 +832,30 @@ class ObjectsScriptTests(TestCase):
                 json.dumps([1, 2.5, None, 'a']),
                 json.dumps({'b': None}),
             ],
+        )
+
+    @patch('redis_lua.script.RedisScript')
+    def test_script_call_in_pipeline(self, _):
+        name = 'foo'
+        regions = [
+            ReturnRegion(
+                type_='string',
+                content='%return string',
+            ),
+        ]
+        script = Script(
+            name=name,
+            regions=regions,
+        )
+        client = MagicMock(spec=BasePipeline)
+        script._redis_scripts[client] = MagicMock(return_value=42)
+        result = script.get_runner(client=client)()
+
+        self.assertTrue(hasattr(result, '__call__'))
+        self.assertEqual("42", result(42))
+        script._redis_scripts[client].assert_called_once_with(
+            keys=[],
+            args=[],
         )
 
     @patch('redis_lua.script.RedisScript')

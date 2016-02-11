@@ -6,7 +6,9 @@ import json
 import six
 
 from collections import namedtuple
+from functools import partial
 from redis.client import Script as RedisScript
+from redis.client import BasePipeline
 
 from .exceptions import error_handler
 from .regions import (
@@ -344,7 +346,9 @@ class Script(object):
 
         :param client: The Redis instance to call the script on.
         :returns: The runner, a callable that takes the script named arguments
-            and returns its result.
+            and returns its result. If `client` is a pipeline, then the runner
+            returns another callable, through which the resulting value must be
+            passed to be parsed.
         """
         def runner(**kwargs):
             """
@@ -406,9 +410,16 @@ class Script(object):
                     keys=keys_params,
                     args=args_params,
                 )
-                return self.convert_return_value_from_call(
-                    self.return_type,
-                    result,
-                )
+
+                if isinstance(client, BasePipeline):
+                    return partial(
+                        self.convert_return_value_from_call,
+                        self.return_type,
+                    )
+                else:
+                    return self.convert_return_value_from_call(
+                        self.return_type,
+                        result,
+                    )
 
         return runner
