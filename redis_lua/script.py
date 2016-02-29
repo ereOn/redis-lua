@@ -193,6 +193,7 @@ class Script(object):
             )
 
         self.regions = regions
+        self._render = None
         self._redis_scripts = {}
 
     def __repr__(self):
@@ -281,7 +282,12 @@ class Script(object):
         if context is None:
             context = RenderContext()
 
-        return context.render_script(self)
+            if not self._render:
+                self._render = context.render_script(self)
+
+            return self._render
+        else:
+            return context.render_script(self)
 
     def __eq__(self, other):
         if not isinstance(other, Script):
@@ -329,6 +335,12 @@ class Script(object):
             instance for.
         :returns: A `RedisScript` instance.
         """
+        if isinstance(client, BasePipeline):
+            return RedisScript(
+                registered_client=client,
+                script=self.render(),
+            )
+
         redis_script = self._redis_scripts.get(client)
 
         if redis_script is None:

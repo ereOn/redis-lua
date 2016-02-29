@@ -281,6 +281,10 @@ class ObjectsScriptTests(TestCase):
 
         self.assertEqual('a\nb\nc', script.render())
 
+        # Make sure a second call (with the cached value) returns the same
+        # script.
+        self.assertEqual('a\nb\nc', script.render())
+
     def test_script_render_with_duplicate_includes_nested_keys(self):
         script_a = Script(
             name='a',
@@ -835,7 +839,7 @@ class ObjectsScriptTests(TestCase):
         )
 
     @patch('redis_lua.script.RedisScript')
-    def test_script_call_in_pipeline(self, _):
+    def test_script_call_in_pipeline(self, redis_script):
         name = 'foo'
         regions = [
             ReturnRegion(
@@ -848,15 +852,18 @@ class ObjectsScriptTests(TestCase):
             regions=regions,
         )
         client = MagicMock(spec=BasePipeline)
-        script._redis_scripts[client] = MagicMock(return_value=42)
+        redis_script.return_value = MagicMock(return_value=42)
         result = script.get_runner(client=client)()
 
         self.assertTrue(hasattr(result, '__call__'))
         self.assertEqual("42", result(42))
-        script._redis_scripts[client].assert_called_once_with(
+        redis_script.return_value.assert_called_once_with(
             keys=[],
             args=[],
         )
+
+        # Make sure pipeline instances are not cached.
+        self.assertNotIn(client, script._redis_scripts)
 
     @patch('redis_lua.script.RedisScript')
     def test_script_call_return_as_string(self, _):
