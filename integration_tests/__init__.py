@@ -15,6 +15,12 @@ except ImportError:
     # pyredis is too old: let's fake TimeoutError
     TimeoutError = Exception
 
+try:
+    from redis.exceptions import ConnectionError
+except ImportError:
+    # pyredis is too old: let's fake ConnectionError
+    ConnectionError = Exception
+
 from redis_lua import (
     run_code,
     parse_script,
@@ -47,7 +53,7 @@ if HAS_REDIS:
 
     try:
         REDIS.ping()
-    except TimeoutError:
+    except (TimeoutError, ConnectionError):
         REDIS = None
 
 
