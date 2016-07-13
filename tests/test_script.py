@@ -1,5 +1,3 @@
-import json
-
 from mock import (
     MagicMock,
     patch,
@@ -8,7 +6,10 @@ from unittest import TestCase
 
 from redis.client import BasePipeline
 
-from redis_lua.script import Script
+from redis_lua.script import (
+    Script,
+    jdumps,
+)
 from redis_lua.regions import (
     TextRegion,
     ScriptRegion,
@@ -833,8 +834,8 @@ class ObjectsScriptTests(TestCase):
                 'ARG',
                 2,
                 0,
-                json.dumps([1, 2.5, None, 'a']),
-                json.dumps({'b': None}),
+                jdumps([1, 2.5, None, 'a']),
+                jdumps({'b': None}),
             ],
         )
 
@@ -945,7 +946,7 @@ class ObjectsScriptTests(TestCase):
             regions=regions,
         )
         value = [1, 'a', None, 3.5]
-        script._redis_scripts[None] = MagicMock(return_value=json.dumps(value))
+        script._redis_scripts[None] = MagicMock(return_value=jdumps(value))
         result = script.get_runner(client=None)()
 
         self.assertEqual(value, result)
@@ -968,7 +969,7 @@ class ObjectsScriptTests(TestCase):
             regions=regions,
         )
         value = {'a': 1, 'b': 3.5, 'c': None, 'd': ['a', 2], 'e': 's'}
-        script._redis_scripts[None] = MagicMock(return_value=json.dumps(value))
+        script._redis_scripts[None] = MagicMock(return_value=jdumps(value))
         result = script.get_runner(client=None)()
 
         self.assertEqual(value, result)

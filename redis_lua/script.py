@@ -2,7 +2,15 @@
 LUA scripts-related functions.
 """
 
-import json
+try:  # pragma: no cover
+    from ujson import dumps as jdumps
+    from ujson import loads as jloads
+except ImportError:
+    from functools import partial
+    from json import dumps
+    from json import loads as jloads
+    jdumps = partial(dumps, separators=(',', ':'))
+
 import six
 
 from collections import namedtuple
@@ -305,9 +313,9 @@ class Script(object):
         elif type_ is bool:
             return 1 if value else 0
         elif type_ is list:
-            return json.dumps(list(value))
+            return jdumps(list(value))
         elif type_ is dict:
-            return json.dumps(dict(value))
+            return jdumps(dict(value))
         else:
             return str(value)
 
@@ -323,7 +331,7 @@ class Script(object):
             if isinstance(value, six.binary_type):
                 value = value.decode('utf-8')
 
-            return json.loads(value)
+            return jloads(value)
         else:
             return value
 
