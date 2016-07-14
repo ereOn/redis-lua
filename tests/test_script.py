@@ -816,7 +816,7 @@ class ObjectsScriptTests(TestCase):
             name=name,
             regions=regions,
         )
-        script._redis_scripts[None] = MagicMock(return_value="result")
+        script._redis_script = MagicMock(return_value="result")
         result = script.get_runner(client=None)(
             arg1='ARG',
             arg2=2,
@@ -828,7 +828,7 @@ class ObjectsScriptTests(TestCase):
         )
 
         self.assertEqual("result", result)
-        script._redis_scripts[None].assert_called_once_with(
+        script._redis_script.assert_called_once_with(
             keys=['KEY', 'KEY 2'],
             args=[
                 'ARG',
@@ -837,6 +837,7 @@ class ObjectsScriptTests(TestCase):
                 jdumps([1, 2.5, None, 'a']),
                 jdumps({'b': None}),
             ],
+            client=None,
         )
 
     @patch('redis_lua.script.RedisScript')
@@ -861,10 +862,8 @@ class ObjectsScriptTests(TestCase):
         redis_script.return_value.assert_called_once_with(
             keys=[],
             args=[],
+            client=client,
         )
-
-        # Make sure pipeline instances are not cached.
-        self.assertNotIn(client, script._redis_scripts)
 
     @patch('redis_lua.script.RedisScript')
     def test_script_call_return_as_string(self, _):
@@ -879,13 +878,14 @@ class ObjectsScriptTests(TestCase):
             name=name,
             regions=regions,
         )
-        script._redis_scripts[None] = MagicMock(return_value=42)
+        script._redis_script = MagicMock(return_value=42)
         result = script.get_runner(client=None)()
 
         self.assertEqual("42", result)
-        script._redis_scripts[None].assert_called_once_with(
+        script._redis_script.assert_called_once_with(
             keys=[],
             args=[],
+            client=None,
         )
 
     @patch('redis_lua.script.RedisScript')
@@ -901,13 +901,14 @@ class ObjectsScriptTests(TestCase):
             name=name,
             regions=regions,
         )
-        script._redis_scripts[None] = MagicMock(return_value="42")
+        script._redis_script = MagicMock(return_value="42")
         result = script.get_runner(client=None)()
 
         self.assertEqual(42, result)
-        script._redis_scripts[None].assert_called_once_with(
+        script._redis_script.assert_called_once_with(
             keys=[],
             args=[],
+            client=None,
         )
 
     @patch('redis_lua.script.RedisScript')
@@ -923,13 +924,14 @@ class ObjectsScriptTests(TestCase):
             name=name,
             regions=regions,
         )
-        script._redis_scripts[None] = MagicMock(return_value=5)
+        script._redis_script = MagicMock(return_value=5)
         result = script.get_runner(client=None)()
 
         self.assertEqual(True, result)
-        script._redis_scripts[None].assert_called_once_with(
+        script._redis_script.assert_called_once_with(
             keys=[],
             args=[],
+            client=None,
         )
 
     @patch('redis_lua.script.RedisScript')
@@ -946,13 +948,14 @@ class ObjectsScriptTests(TestCase):
             regions=regions,
         )
         value = [1, 'a', None, 3.5]
-        script._redis_scripts[None] = MagicMock(return_value=jdumps(value))
+        script._redis_script = MagicMock(return_value=jdumps(value))
         result = script.get_runner(client=None)()
 
         self.assertEqual(value, result)
-        script._redis_scripts[None].assert_called_once_with(
+        script._redis_script.assert_called_once_with(
             keys=[],
             args=[],
+            client=None,
         )
 
     @patch('redis_lua.script.RedisScript')
@@ -969,13 +972,14 @@ class ObjectsScriptTests(TestCase):
             regions=regions,
         )
         value = {'a': 1, 'b': 3.5, 'c': None, 'd': ['a', 2], 'e': 's'}
-        script._redis_scripts[None] = MagicMock(return_value=jdumps(value))
+        script._redis_script = MagicMock(return_value=jdumps(value))
         result = script.get_runner(client=None)()
 
         self.assertEqual(value, result)
-        script._redis_scripts[None].assert_called_once_with(
+        script._redis_script.assert_called_once_with(
             keys=[],
             args=[],
+            client=None,
         )
 
     def test_script_call_missing_key(self):
