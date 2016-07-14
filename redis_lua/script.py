@@ -202,7 +202,7 @@ class Script(object):
 
         self.regions = regions
         self._render = None
-        self._redis_scripts = {}
+        self._redis_script = None
 
     def __repr__(self):
         return '{_class}(name={self.name!r})'.format(
@@ -335,31 +335,6 @@ class Script(object):
         else:
             return value
 
-    def get_redis_script(self, client):
-        """
-        Return a `RedisScript` instance associated to the specified client.
-
-        :param client: The Redis client instance to get a `RedisScript`
-            instance for.
-        :returns: A `RedisScript` instance.
-        """
-        if isinstance(client, BasePipeline):
-            return RedisScript(
-                registered_client=client,
-                script=self.render(),
-            )
-
-        redis_script = self._redis_scripts.get(client)
-
-        if redis_script is None:
-            redis_script = RedisScript(
-                registered_client=client,
-                script=self.render(),
-            )
-            self._redis_scripts[client] = redis_script
-
-        return redis_script
-
     def get_runner(self, client):
         """
         Get a runner for the script on the specified `client`.
@@ -374,7 +349,6 @@ class Script(object):
             """
             Call the script with its named arguments.
 
-            :param client: The Redis instance to call the script on.
             :returns: The script result.
             """
             sentinel = object()
@@ -426,9 +400,16 @@ class Script(object):
                 )
 
             with error_handler(self):
-                result = self.get_redis_script(client)(
+                if not self._redis_script:
+                    self._redis_script = RedisScript(
+                        registered_client=client,
+                        script=self.render(),
+                    )
+
+                result = self._redis_script(
                     keys=keys_params,
                     args=args_params,
+                    client=client,
                 )
 
                 if isinstance(client, BasePipeline):
