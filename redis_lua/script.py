@@ -31,6 +31,19 @@ from .render import RenderContext
 
 @six.python_2_unicode_compatible
 class Script(object):
+    SENTINEL = object()
+    __slots__ = [
+        'name',
+        'keys',
+        'args',
+        'return_type',
+        'multiple_inclusion',
+        'line_infos',
+        'regions',
+        '_render',
+        '_redis_script',
+    ]
+
     @classmethod
     def get_keys_from_regions(cls, regions):
         result = []
@@ -335,6 +348,84 @@ class Script(object):
         else:
             return value
 
+    def runner(self, client, **kwargs):
+        """
+        Call the script with its named arguments.
+
+        :returns: The script result.
+        """
+        sentinel = self.SENTINEL
+        keys = {
+            key: index
+            for index, key
+            in enumerate(self.keys)
+        }
+        args = {
+            arg: (index, type_)
+            for index, (arg, type_)
+            in enumerate(self.args)
+        }
+        keys_params = [sentinel] * len(self.keys)
+        args_params = [sentinel] * len(self.args)
+
+        for name, value in kwargs.items():
+            try:
+                index = keys[name]
+                keys_params[index] = value
+            except KeyError:
+                try:
+                    index, type_ = args[name]
+                    args_params[index] = self.convert_argument_for_call(
+                        type_,
+                        value,
+                    )
+                except KeyError:
+                    raise TypeError("Unknown key/argument %r" % name)
+
+        missing_keys = {
+            key
+            for key, index in keys.items()
+            if keys_params[index] is sentinel
+        }
+
+        if missing_keys:
+            raise TypeError("Missing key(s) %r" % list(missing_keys))
+
+        missing_args = {
+            arg
+            for arg, (index, type_) in args.items()
+            if args_params[index] is sentinel
+        }
+
+        if missing_args:
+            raise TypeError(
+                "Missing argument(s) %r" % list(missing_args),
+            )
+
+        with error_handler(self):
+            if not self._redis_script:
+                self._redis_script = RedisScript(
+                    registered_client=client,
+                    script=self.render(),
+                )
+
+            result = self._redis_script(
+                keys=keys_params,
+                args=args_params,
+                client=client,
+            )
+
+            if isinstance(client, BasePipeline):
+                return partial(
+                    self.convert_return_value_from_call,
+                    self.return_type,
+                )
+            else:
+                return self.convert_return_value_from_call(
+                    self.return_type,
+                    result,
+                )
+
     def get_runner(self, client):
         """
         Get a runner for the script on the specified `client`.
@@ -345,82 +436,4 @@ class Script(object):
             returns another callable, through which the resulting value must be
             passed to be parsed.
         """
-        def runner(**kwargs):
-            """
-            Call the script with its named arguments.
-
-            :returns: The script result.
-            """
-            sentinel = object()
-            keys = {
-                key: index
-                for index, key
-                in enumerate(self.keys)
-            }
-            args = {
-                arg: (index, type_)
-                for index, (arg, type_)
-                in enumerate(self.args)
-            }
-            keys_params = [sentinel] * len(self.keys)
-            args_params = [sentinel] * len(self.args)
-
-            for name, value in kwargs.items():
-                try:
-                    index = keys[name]
-                    keys_params[index] = value
-                except KeyError:
-                    try:
-                        index, type_ = args[name]
-                        args_params[index] = self.convert_argument_for_call(
-                            type_,
-                            value,
-                        )
-                    except KeyError:
-                        raise TypeError("Unknown key/argument %r" % name)
-
-            missing_keys = {
-                key
-                for key, index in keys.items()
-                if keys_params[index] is sentinel
-            }
-
-            if missing_keys:
-                raise TypeError("Missing key(s) %r" % list(missing_keys))
-
-            missing_args = {
-                arg
-                for arg, (index, type_) in args.items()
-                if args_params[index] is sentinel
-            }
-
-            if missing_args:
-                raise TypeError(
-                    "Missing argument(s) %r" % list(missing_args),
-                )
-
-            with error_handler(self):
-                if not self._redis_script:
-                    self._redis_script = RedisScript(
-                        registered_client=client,
-                        script=self.render(),
-                    )
-
-                result = self._redis_script(
-                    keys=keys_params,
-                    args=args_params,
-                    client=client,
-                )
-
-                if isinstance(client, BasePipeline):
-                    return partial(
-                        self.convert_return_value_from_call,
-                        self.return_type,
-                    )
-                else:
-                    return self.convert_return_value_from_call(
-                        self.return_type,
-                        result,
-                    )
-
-        return runner
+        return partial(self.runner, client)
