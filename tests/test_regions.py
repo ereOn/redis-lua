@@ -746,6 +746,8 @@ class ScriptParserTests(TestCase):
             '%include "foo"',
             '%include "foo"',
             'local e = 4;',
+            '%include "../foo"',
+            '%include "./bar/../foo"',
         ]
         content = '\n'.join(contents)
         script = Script(
@@ -779,14 +781,24 @@ class ScriptParserTests(TestCase):
                     content='%include "foo"',
                 ),
                 TextRegion(content=contents[5]),
+                ScriptRegion(
+                    script=script,
+                    content='%include "../foo"',
+                ),
+                ScriptRegion(
+                    script=script,
+                    content='%include "./bar/../foo"',
+                ),
             ],
             regions,
         )
         self.assertEqual(
             [
-                call(name="./%s" % script.name),
-                call(name="./%s" % script.name),
-                call(name="./%s" % script.name),
+                call(name="%s" % script.name),
+                call(name="%s" % script.name),
+                call(name="%s" % script.name),
+                call(name="../%s" % script.name),
+                call(name="%s" % script.name),
             ],
             get_script_by_name.mock_calls[:],
         )

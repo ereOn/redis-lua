@@ -402,16 +402,18 @@ class ScriptParser(object):
         get_script_by_name,
     ):
         match = re.match(
-            r'^\s*%include\s+"(?P<name>[\w\d_\-/\\]+)"\s*$',
+            r'^\s*%include\s+"(?P<name>[\w\d_\-/\\.]+)"\s*$',
             statement,
         )
 
         if match:
             # We don't want backslashes in script names. Life is already
             # complex enough.
-            name = os.path.join(
-                current_path,
-                match.group('name'),
+            name = os.path.relpath(
+                os.path.join(
+                    current_path,
+                    match.group('name'),
+                )
             ).replace(os.path.sep, '/')
             script = get_script_by_name(name=name)
 
